@@ -1,5 +1,6 @@
 import { useClubsQuery } from "./hooks/useClubsQuery.js";
 import { useClubSelection } from "./hooks/useClubSelection.js";
+import { useClubPlayersQuery } from "./hooks/useClubPlayersQuery.js";
 import { useClubVisualTheme } from "./hooks/useClubVisualTheme.js";
 import { StatusMessage } from "./components/StatusMessage.jsx";
 import { PreviewBlock } from "./components/PreviewBlock.jsx";
@@ -19,6 +20,10 @@ function App() {
     leagueClubs,
     selectedClub,
   } = useClubSelection(clubs);
+
+  const { players, isLoading: isLoadingPlayers } = useClubPlayersQuery(
+    selectedClub?.id,
+  );
 
   const dashboardStyle = useClubVisualTheme(selectedClub);
 
@@ -230,9 +235,31 @@ function App() {
 
           <PreviewBlock
             title="Club Overview"
-            description="More club information is coming soon. This will include squad details, club history, and more."
+            description={
+              selectedClub
+                ? `${selectedClub.name}'s current squad.`
+                : "More club information is coming soon. This will include squad details, club history, and more."
+            }
             className="mt-5 min-h-40"
-          />
+          >
+            {selectedClub &&
+              (isLoadingPlayers ? (
+                <p className="mt-3 text-sm text-[#68736f]">
+                  Loading squad...
+                </p>
+              ) : (
+                <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-[#34443b] sm:grid-cols-4">
+                  {players.map((player) => (
+                    <li key={player.id}>
+                      <span className="font-semibold">{player.name}</span>
+                      <span className="block text-xs text-[#68736f]">
+                        {player.position}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ))}
+          </PreviewBlock>
         </section>
       </div>
     </main>

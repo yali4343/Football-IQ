@@ -1,4 +1,4 @@
-export function PreviewBlock({ title, description, className = "" }) {
+export function PreviewBlock({ title, description, className = "", children }) {
   return (
     <section
       className={`relative overflow-hidden border border-[#d8ded8] bg-[#fffefa] p-5 sm:p-6 ${className}`}
@@ -17,9 +17,12 @@ export function PreviewBlock({ title, description, className = "" }) {
             {title}
           </h3>
         </div>
-        <p className="max-w-sm text-sm leading-6 text-[#68736f]">
-          {description}
-        </p>
+        <div>
+          <p className="max-w-sm text-sm leading-6 text-[#68736f]">
+            {description}
+          </p>
+          {children}
+        </div>
       </div>
     </section>
   );

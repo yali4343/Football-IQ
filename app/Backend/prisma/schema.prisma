@@ -13,8 +13,17 @@ datasource db {
 }
 
 model Club {
-  id      Int    @id @default(autoincrement())
+  id      Int      @id @default(autoincrement())
   name    String
   league  String
   stadium String
+  players Player[]
+}
+
+model Player {
+  id       Int    @id @default(autoincrement())
+  name     String
+  position String
+  clubId   Int
+  club     Club   @relation(fields: [clubId], references: [id])
 }

@@ -7,7 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "dev": "nodemon --ext ts,js,json --exec \"npm run build && node dist/main.js\"",
+    "dev": "npm run build && node dist/main.js",
+    "dev:nodemon": "nodemon --ext ts,js,json --exec \"npm run build && node dist/main.js\"",
     "start": "npm run build && node dist/main.js",
     "db:seed": "npm run build && node dist/prisma/seed.js",
     "lint": "oxlint"
