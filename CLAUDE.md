@@ -8,6 +8,7 @@ Football-IQ is a production-style Full-Stack football dashboard and a continuous
 - Do not introduce new technologies or abstractions without a clear current requirement.
 - Explain important implementation and architectural decisions so the changes remain understandable.
 - Git: committing, pushing, creating/merging pull requests, and deleting branches are solely the user's responsibility. Claude must not run these actions itself (even after a plan is approved) unless the user explicitly asks in the moment. Claude may still run read-only Git commands (status, diff, log, etc.) freely to inspect state.
+- Browser verification: manually checking frontend changes in Chrome is solely the user's responsibility. Claude must not drive a browser itself to verify a change, even after implementing it — flag when a change needs manual verification and wait for the user to check it.
 
 ## Learning workflow
 
@@ -24,6 +25,7 @@ inspect -> teach/understand -> propose a plan -> wait for approval -> implement 
 - Before implementation, explain the important architectural/product decisions that need to be understood up front.
 - Once a plan is approved, automate implementation, refactors, imports, and lint/build/tests - don't make the user do boilerplate or repetitive steps by hand. Leave committing, pushing, PRs, merging, and branch deletion to the user.
 - After explaining a completed set of changes, always propose a branch name and a concise commit message for them, since the user does the actual Git work themselves.
+- Once every acceptance-criteria checkbox on the ticket is done, generate a concise PR description ending with `Closes #<issue-number>`, ready for the user to paste into GitHub.
 - Ask understanding questions only when a concept is genuinely important for architecture, debugging, or interviews - not after every mechanical step.
 - Keep changes scoped to the current topic; avoid unrelated refactors.
 - Never claim verification succeeded unless the relevant checks were actually run.
