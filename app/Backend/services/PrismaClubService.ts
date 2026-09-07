@@ -1,6 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import type { PrismaClient } from "../generated/prisma/client.js";
-import type { Club, ClubService } from "./ClubService.js";
+import type { Club, ClubService, Player } from "./ClubService.js";
 
 @injectable()
 export class PrismaClubService implements ClubService {
@@ -36,5 +36,9 @@ export class PrismaClubService implements ClubService {
     }
 
     return (await this.getClubById(this.selectedClubId)) ?? null;
+  }
+
+  async getClubPlayers(clubId: number): Promise<Player[]> {
+    return this.prisma.player.findMany({ where: { clubId } });
   }
 }
