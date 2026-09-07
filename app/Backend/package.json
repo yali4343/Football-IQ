@@ -8,7 +8,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "dev": "nodemon --ext ts,js,json --exec \"npm run build && node dist/main.js\"",
-    "start": "npm run build && node dist/main.js"
+    "start": "npm run build && node dist/main.js",
+    "db:seed": "npm run build && node dist/prisma/seed.js",
+    "lint": "oxlint"
   },
   "keywords": [],
   "author": "",
@@ -17,14 +19,21 @@
     "@fastify/cors": "^11.3.0",
     "@fastify/swagger": "^9.8.1",
     "@fastify/swagger-ui": "^6.1.1",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "7.10.0",
+    "dotenv": "^17.4.2",
     "fastify": "^5.12.0",
+    "pg": "^8.23.0",
+    "prisma": "7.10.0",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.10.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^26.4.1",
+    "@types/pg": "^8.23.1",
     "nodemon": "^3.1.14",
+    "oxlint": "^1.81.0",
     "typescript": "^7.0.2"
   }
 }

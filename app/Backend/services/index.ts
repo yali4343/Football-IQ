@@ -1,2 +1,2 @@
 export type { Club, ClubService } from "./ClubService.js";
-export { InMemoryClubService } from "./InMemoryClubService.js";
+export { PrismaClubService } from "./PrismaClubService.js";

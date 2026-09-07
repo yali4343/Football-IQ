@@ -6,8 +6,8 @@ export interface Club {
 }
 
 export interface ClubService {
-  getAllClubs(): Club[];
-  getClubById(clubId: number): Club | undefined;
-  selectClub(clubId: number): Club | null;
-  getSelectedClub(): Club | null;
+  getAllClubs(): Promise<Club[]>;
+  getClubById(clubId: number): Promise<Club | undefined>;
+  selectClub(clubId: number): Promise<Club | null>;
+  getSelectedClub(): Promise<Club | null>;
 }
