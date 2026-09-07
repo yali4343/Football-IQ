@@ -70,7 +70,7 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
       },
     },
     async (request, reply) => {
-      const clubs = clubService.getAllClubs();
+      const clubs = await clubService.getAllClubs();
 
       return reply.code(HTTP_STATUS.OK).send(clubs);
     },
@@ -86,7 +86,7 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
       },
     },
     async (request, reply) => {
-      const club = clubService.getSelectedClub();
+      const club = await clubService.getSelectedClub();
 
       return reply.code(HTTP_STATUS.OK).send(club);
     },
@@ -104,7 +104,7 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
     async (request, reply) => {
       const { clubId } = parseClubSelectionOrThrow(request.body);
 
-      const club = clubService.selectClub(clubId);
+      const club = await clubService.selectClub(clubId);
 
       return sendClubOrNotFound(club, reply);
     },
@@ -122,7 +122,7 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
     async (request, reply) => {
       const clubId = parseClubIdOrThrow(request.params);
 
-      const club = clubService.getClubById(clubId);
+      const club = await clubService.getClubById(clubId);
 
       return sendClubOrNotFound(club, reply);
     },
