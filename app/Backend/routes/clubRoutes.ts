@@ -45,7 +45,7 @@ function parseClubSelectionOrThrow(body: unknown) {
   return validationResult.data;
 }
 
-function sendClubOrNotFound(club: unknown, reply: FastifyReply) {
+function assertClubFound(club: unknown): void {
   if (!club) {
     throw new AppError(
       "Club not found",
@@ -53,6 +53,10 @@ function sendClubOrNotFound(club: unknown, reply: FastifyReply) {
       "CLUB_NOT_FOUND",
     );
   }
+}
+
+function sendClubOrNotFound(club: unknown, reply: FastifyReply) {
+  assertClubFound(club);
 
   return reply.code(HTTP_STATUS.OK).send(club);
 }
@@ -125,6 +129,28 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
       const club = await clubService.getClubById(clubId);
 
       return sendClubOrNotFound(club, reply);
+    },
+  );
+
+  fastify.get(
+    "/:id/players",
+    {
+      schema: {
+        summary: "Get club players",
+        description: "Returns the squad for one supported football club",
+        tags: ["Clubs"],
+      },
+    },
+    async (request, reply) => {
+      const clubId = parseClubIdOrThrow(request.params);
+
+      const club = await clubService.getClubById(clubId);
+
+      assertClubFound(club);
+
+      const players = await clubService.getClubPlayers(clubId);
+
+      return reply.code(HTTP_STATUS.OK).send(players);
     },
   );
 }
