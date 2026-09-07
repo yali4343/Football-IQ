@@ -24,6 +24,18 @@ export async function getSelectedClub(signal) {
   return response.json();
 }
 
+export async function getClubPlayers(clubId, signal) {
+  const response = await fetch(`${CLUBS_URL}/${clubId}/players`, {
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch club players: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export async function selectClub(clubId) {
   const response = await fetch(`${CLUBS_URL}/selection`, {
     method: "PATCH",
