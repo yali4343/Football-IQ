@@ -52,7 +52,7 @@ describe("PrismaFootballSyncService", () => {
     prisma.club.findUnique.mockResolvedValue(null);
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium" },
+      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
     ]);
 
     const summary = await service(prisma, client).run();
@@ -62,6 +62,7 @@ describe("PrismaFootballSyncService", () => {
         name: "Arsenal",
         stadium: "Emirates Stadium",
         footballDataId: 42,
+        footballDataCode: "ARS",
         leagueId: 1,
         isActive: true,
       },
@@ -82,18 +83,24 @@ describe("PrismaFootballSyncService", () => {
       name: "Arsenal FC",
       stadium: "Old Stadium Name",
       footballDataId: 42,
+      footballDataCode: "ARS",
       isActive: true,
     });
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium" },
+      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
     ]);
 
     const summary = await service(prisma, client).run();
 
     expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: 5 },
-      data: { name: "Arsenal", stadium: "Emirates Stadium", isActive: true },
+      data: {
+        name: "Arsenal",
+        stadium: "Emirates Stadium",
+        footballDataCode: "ARS",
+        isActive: true,
+      },
     });
     expect(summary.leagues[0]).toMatchObject({
       clubsCreated: 0,
@@ -109,18 +116,24 @@ describe("PrismaFootballSyncService", () => {
       name: "Arsenal",
       stadium: "Emirates Stadium",
       footballDataId: 42,
+      footballDataCode: "ARS",
       isActive: false,
     });
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium" },
+      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
     ]);
 
     const summary = await service(prisma, client).run();
 
     expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: 5 },
-      data: { name: "Arsenal", stadium: "Emirates Stadium", isActive: true },
+      data: {
+        name: "Arsenal",
+        stadium: "Emirates Stadium",
+        footballDataCode: "ARS",
+        isActive: true,
+      },
     });
     expect(summary.leagues[0].clubsUpdated).toBe(1);
   });
@@ -133,13 +146,14 @@ describe("PrismaFootballSyncService", () => {
       name: "Some Other Club",
       stadium: null,
       footballDataId: 999,
+      footballDataCode: "SOC",
       isActive: true,
     });
     prisma.club.updateMany.mockResolvedValue({ count: 1 });
 
     const client = createMockClient([
-      { id: 999, name: "Some Other Club", venue: null },
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium" },
+      { id: 999, name: "Some Other Club", venue: null, tla: "SOC" },
+      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
     ]);
 
     const summary = await service(prisma, client).run();
@@ -193,11 +207,12 @@ describe("PrismaFootballSyncService", () => {
       name: "Arsenal",
       stadium: "Emirates Stadium",
       footballDataId: 42,
+      footballDataCode: "ARS",
       isActive: true,
     });
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium" },
+      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
     ]);
     const target = service(prisma, client);
 
@@ -213,9 +228,9 @@ describe("PrismaFootballSyncService", () => {
     prisma.league.findMany.mockResolvedValue([premierLeague, laLiga]);
     prisma.club.findUnique.mockResolvedValue(null);
 
-    const getCompetitionTeams = vi
-      .fn()
-      .mockResolvedValue([{ id: 1, name: "Test Club", venue: null }]);
+    const getCompetitionTeams = vi.fn().mockResolvedValue([
+      { id: 1, name: "Test Club", venue: null, tla: "TST" },
+    ]);
     const client: FootballDataClient = { getCompetitionTeams };
 
     await service(prisma, client).run({ leagueSlug: "la-liga" });

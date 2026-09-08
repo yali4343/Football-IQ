@@ -85,6 +85,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
             name: team.name,
             stadium: team.venue,
             footballDataId: team.id,
+            footballDataCode: team.tla,
             leagueId: league.id,
             isActive: true,
           },
@@ -96,6 +97,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
       const needsUpdate =
         existing.name !== team.name ||
         existing.stadium !== team.venue ||
+        existing.footballDataCode !== team.tla ||
         !existing.isActive;
 
       if (needsUpdate) {
@@ -104,6 +106,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
           data: {
             name: team.name,
             stadium: team.venue,
+            footballDataCode: team.tla,
             isActive: true,
           },
         });

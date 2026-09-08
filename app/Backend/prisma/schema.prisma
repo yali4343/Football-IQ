@@ -27,6 +27,7 @@ model Club {
   leagueId          Int
   league            League    @relation(fields: [leagueId], references: [id])
   footballDataId    Int       @unique
+  footballDataCode  String?
   apiFootballId     Int?      @unique
   isActive          Boolean   @default(true)
   squadLastSyncedAt DateTime?
