@@ -26,4 +26,6 @@ model Player {
   position String
   clubId   Int
   club     Club   @relation(fields: [clubId], references: [id])
+
+  @@index([clubId])
 }

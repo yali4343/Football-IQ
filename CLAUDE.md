@@ -8,6 +8,7 @@ Football-IQ is a production-style Full-Stack football dashboard and a continuous
 - Do not introduce new technologies or abstractions without a clear current requirement.
 - Explain important implementation and architectural decisions so the changes remain understandable.
 - Git: committing, pushing, creating/merging pull requests, and deleting branches are solely the user's responsibility. Claude must not run these actions itself (even after a plan is approved) unless the user explicitly asks in the moment. Claude may still run read-only Git commands (status, diff, log, etc.) freely to inspect state.
+- Once a branch's ticket work is merged, remind the user to delete both the local and remote copies of that branch — don't delete them, just prompt.
 - Browser verification: manually checking frontend changes in Chrome is solely the user's responsibility. Claude must not drive a browser itself to verify a change, even after implementing it — flag when a change needs manual verification and wait for the user to check it.
 
 ## Learning workflow
@@ -17,6 +18,7 @@ Football-IQ is a production-style Full-Stack football dashboard and a continuous
 - Learning happens through real improvements to Football-IQ, not artificial exercises: propose 1-3 meaningful changes for the current subtopic that both improve the project and teach the concept, then wait for approval before implementing them.
 - Stay scoped to the current subtopic: don't pull in future ProgramGoal topics early just to make a solution look more advanced.
 - `/teach` is invoked by you, not something Claude calls on its own initiative; when invoked, ground it in the current subtopic and the real code under discussion.
+- When there are no open tickets left to work on, check `ProgramGoal.md` for the next topic not yet covered (e.g. finishing Week 3 moves on to Week 4) and create tickets for it instead of waiting to be asked.
 
 ### Workflow for a meaningful change
 
@@ -29,6 +31,7 @@ inspect -> teach/understand -> propose a plan -> wait for approval -> implement 
 - Ask understanding questions only when a concept is genuinely important for architecture, debugging, or interviews - not after every mechanical step.
 - Keep changes scoped to the current topic; avoid unrelated refactors.
 - Never claim verification succeeded unless the relevant checks were actually run.
+- When implementing a ticket, map each acceptance-criteria checkbox to its own commit: implement and verify one checkbox at a time, then propose a commit message for just that checkbox before moving to the next, rather than proposing one combined commit for the whole ticket.
 
 ## Agent skills
 
