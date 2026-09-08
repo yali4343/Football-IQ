@@ -95,7 +95,7 @@ function App() {
           <BrandMark />
         </header>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.55fr)]">
+        <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
           <section
             className="selected-stage"
             aria-labelledby="selected-club-heading"

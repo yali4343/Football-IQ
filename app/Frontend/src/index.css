@@ -78,10 +78,18 @@ select:focus-visible {
   overflow: hidden;
   border: 1px solid var(--club-primary);
   border-radius: var(--radius-panel);
-  background: var(--club-wash);
+  background-color: var(--club-wash);
+  background-image: radial-gradient(
+    120% 140% at 15% 0%,
+    rgba(255, 255, 255, 0.55),
+    transparent 60%
+  );
   box-shadow:
     0 1px 2px rgba(23, 32, 29, 0.04),
     0 16px 32px -20px rgba(23, 32, 29, 0.22);
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
 }
 
 .stadium-lines {
@@ -105,16 +113,24 @@ select:focus-visible {
 }
 
 .club-mark {
-  display: grid;
-  min-width: 4rem;
-  min-height: 4rem;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  min-height: 4.5rem;
+  padding-bottom: 10%;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 55%, 50% 100%, 0% 55%);
   border: 1px solid var(--club-primary);
-  background: var(--club-secondary);
+  background-color: var(--club-secondary);
   color: var(--club-ink);
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
+  letter-spacing: 0.02em;
+  filter: drop-shadow(0 6px 10px rgba(23, 32, 29, 0.28));
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
 }
 
 .selector-panel {
@@ -125,6 +141,7 @@ select:focus-visible {
   box-shadow:
     0 1px 2px rgba(23, 32, 29, 0.04),
     0 16px 32px -20px rgba(23, 32, 29, 0.18);
+  transition: border-color 200ms ease;
 }
 
 .club-select {
