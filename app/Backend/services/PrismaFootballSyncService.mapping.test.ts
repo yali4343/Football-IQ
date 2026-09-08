@@ -62,8 +62,10 @@ function alwaysAvailableClient(
 ): ApiFootballClient {
   return {
     hasQuotaRemaining: () => true,
+    getRequestsUsed: () => null,
     getLeagueDirectory: vi.fn().mockResolvedValue(directory),
     searchTeam: vi.fn().mockResolvedValue(searchResults),
+    getSquad: () => Promise.reject(new Error("not used")),
   };
 }
 
@@ -169,8 +171,10 @@ describe("PrismaFootballSyncService mapping", () => {
     const searchTeam = vi.fn().mockResolvedValue([]);
     const client: ApiFootballClient = {
       hasQuotaRemaining: () => false,
+      getRequestsUsed: () => 100,
       getLeagueDirectory,
       searchTeam,
+      getSquad: () => Promise.reject(new Error("not used")),
     };
 
     const summary = await service(prisma, client).run();

@@ -52,8 +52,10 @@ function createMockClient(
 
 const unusedApiFootballClient: ApiFootballClient = {
   hasQuotaRemaining: () => true,
+  getRequestsUsed: () => null,
   getLeagueDirectory: () => Promise.reject(new Error("not used")),
   searchTeam: () => Promise.reject(new Error("not used")),
+  getSquad: () => Promise.reject(new Error("not used")),
 };
 
 function service(
