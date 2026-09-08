@@ -4,8 +4,23 @@ import { useClubPlayersQuery } from "./hooks/useClubPlayersQuery.js";
 import { useClubVisualTheme } from "./hooks/useClubVisualTheme.js";
 import { StatusMessage } from "./components/StatusMessage.jsx";
 import { PreviewBlock } from "./components/PreviewBlock.jsx";
+import { Spinner } from "./components/Spinner.jsx";
 
 const dashboardTitle = "Personalized Football Team Dashboard";
+
+function DashboardStatusScreen({ busy = false, children }) {
+  return (
+    <main className="dashboard-shell" aria-busy={busy || undefined}>
+      <div className="dashboard-frame">
+        <p className="eyebrow">Matchday dashboard</p>
+        <h1 className="font-display text-5xl leading-none text-ink sm:text-7xl">
+          {dashboardTitle}
+        </h1>
+        {children}
+      </div>
+    </main>
+  );
+}
 
 function App() {
   const { clubs, isLoading, error } = useClubsQuery();
@@ -29,31 +44,22 @@ function App() {
 
   if (isLoading) {
     return (
-      <main className="dashboard-shell" aria-busy="true">
-        <div className="dashboard-frame">
-          <p className="eyebrow">Matchday dashboard</p>
-          <h1 className="font-display text-5xl leading-none text-ink sm:text-7xl">
-            {dashboardTitle}
-          </h1>
-          <StatusMessage>Loading clubs...</StatusMessage>
-        </div>
-      </main>
+      <DashboardStatusScreen busy>
+        <StatusMessage>
+          <Spinner className="mr-2" />
+          Loading clubs...
+        </StatusMessage>
+      </DashboardStatusScreen>
     );
   }
 
   if (error) {
     return (
-      <main className="dashboard-shell">
-        <div className="dashboard-frame">
-          <p className="eyebrow">Matchday dashboard</p>
-          <h1 className="font-display text-5xl leading-none text-ink sm:text-7xl">
-            {dashboardTitle}
-          </h1>
-          <StatusMessage tone="error">
-            Failed to load clubs: {error.message}
-          </StatusMessage>
-        </div>
-      </main>
+      <DashboardStatusScreen>
+        <StatusMessage tone="error">
+          Failed to load clubs: {error.message}
+        </StatusMessage>
+      </DashboardStatusScreen>
     );
   }
 
@@ -125,73 +131,84 @@ function App() {
               </div>
             </div>
 
-            <label
-              className="mt-8 block text-sm font-semibold text-body"
-              htmlFor="league-select"
-            >
-              League
-            </label>
-            <select
-              id="league-select"
-              className="club-select mt-2"
-              value={selectedLeague}
-              onChange={(event) => selectLeague(event.target.value)}
-            >
-              <option value="">Select a league</option>
-
-              {supportedLeagues.map((league) => (
-                <option key={league} value={league}>
-                  {league}
-                </option>
-              ))}
-            </select>
-
-            <label
-              className="mt-5 block text-sm font-semibold text-body"
-              htmlFor="club-select"
-            >
-              Club
-            </label>
-            <select
-              id="club-select"
-              className="club-select mt-2"
-              aria-describedby={
-                !selectedLeague ? "club-select-help" : undefined
-              }
-              disabled={!selectedLeague || leagueClubs.length === 0 || isSelecting}
-              value={
-                leagueClubs.some((club) => club.id === selectedClub?.id)
-                  ? selectedClub.id
-                  : ""
-              }
-              onChange={(event) => {
-                const value = event.target.value;
-
-                if (value !== "") {
-                  selectClubById(Number(value));
-                }
-              }}
-            >
-              <option value="">Select a club</option>
-
-              {leagueClubs.map((club) => (
-                <option key={club.id} value={club.id}>
-                  {club.name}
-                </option>
-              ))}
-            </select>
-            {!selectedLeague && (
-              <p
-                id="club-select-help"
-                className="mt-2 text-sm leading-6 text-subtle"
-              >
-                Select a league first.
+            {clubs.length === 0 ? (
+              <p className="mt-8 text-sm leading-6 text-subtle">
+                No clubs are available yet. Check back once club data has
+                been synced.
               </p>
-            )}
-            {selectionError && (
-              <StatusMessage tone="error">
-                Failed to save your selection: {selectionError.message}
-              </StatusMessage>
+            ) : (
+              <>
+                <label
+                  className="mt-8 block text-sm font-semibold text-body"
+                  htmlFor="league-select"
+                >
+                  League
+                </label>
+                <select
+                  id="league-select"
+                  className="club-select mt-2"
+                  value={selectedLeague}
+                  onChange={(event) => selectLeague(event.target.value)}
+                >
+                  <option value="">Select a league</option>
+
+                  {supportedLeagues.map((league) => (
+                    <option key={league} value={league}>
+                      {league}
+                    </option>
+                  ))}
+                </select>
+
+                <label
+                  className="mt-5 block text-sm font-semibold text-body"
+                  htmlFor="club-select"
+                >
+                  Club
+                </label>
+                <select
+                  id="club-select"
+                  className="club-select mt-2"
+                  aria-describedby={
+                    !selectedLeague ? "club-select-help" : undefined
+                  }
+                  disabled={
+                    !selectedLeague || leagueClubs.length === 0 || isSelecting
+                  }
+                  value={
+                    leagueClubs.some((club) => club.id === selectedClub?.id)
+                      ? selectedClub.id
+                      : ""
+                  }
+                  onChange={(event) => {
+                    const value = event.target.value;
+
+                    if (value !== "") {
+                      selectClubById(Number(value));
+                    }
+                  }}
+                >
+                  <option value="">Select a club</option>
+
+                  {leagueClubs.map((club) => (
+                    <option key={club.id} value={club.id}>
+                      {club.name}
+                    </option>
+                  ))}
+                </select>
+                {!selectedLeague && (
+                  <p
+                    id="club-select-help"
+                    className="mt-2 text-sm leading-6 text-subtle"
+                  >
+                    Select a league first.
+                  </p>
+                )}
+                {selectionError && (
+                  <StatusMessage tone="error">
+                    Failed to save your selection: {selectionError.message}
+                  </StatusMessage>
+                )}
+              </>
             )}
           </section>
         </div>
@@ -244,7 +261,8 @@ function App() {
           >
             {selectedClub &&
               (isLoadingPlayers ? (
-                <p className="mt-3 text-sm text-subtle">
+                <p className="mt-3 flex items-center text-sm text-subtle">
+                  <Spinner className="mr-2" />
                   Loading squad...
                 </p>
               ) : (
