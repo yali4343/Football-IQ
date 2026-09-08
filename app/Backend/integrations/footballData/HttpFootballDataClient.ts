@@ -1,5 +1,7 @@
 import { injectable } from "tsyringe";
 import AppError from "../../errors/AppError.js";
+import { createRateLimitThrottle } from "../http/rateLimitThrottle.js";
+import { requireApiKey } from "../http/requireApiKey.js";
 import type {
   FootballDataClient,
   FootballDataTeam,
@@ -21,22 +23,14 @@ interface FootballDataTeamsResponse {
 
 @injectable()
 export class HttpFootballDataClient implements FootballDataClient {
-  private lastRequestAt = 0;
+  private readonly throttle = createRateLimitThrottle(MIN_DELAY_MS);
 
   async getCompetitionTeams(
     footballDataId: number,
   ): Promise<FootballDataTeam[]> {
-    await this.throttle();
+    await this.throttle.wait();
 
-    const apiKey = process.env["FOOTBALL_DATA_API_KEY"];
-
-    if (!apiKey) {
-      throw new AppError(
-        "FOOTBALL_DATA_API_KEY is not set",
-        500,
-        "MISSING_API_KEY",
-      );
-    }
+    const apiKey = requireApiKey("FOOTBALL_DATA_API_KEY");
 
     const response = await fetch(
       `${BASE_URL}/competitions/${footballDataId}/teams`,
@@ -61,16 +55,5 @@ export class HttpFootballDataClient implements FootballDataClient {
       venue: team.venue ?? null,
       tla: team.tla ?? null,
     }));
-  }
-
-  private async throttle(): Promise<void> {
-    const elapsed = Date.now() - this.lastRequestAt;
-    const wait = MIN_DELAY_MS - elapsed;
-
-    if (wait > 0) {
-      await new Promise((resolve) => setTimeout(resolve, wait));
-    }
-
-    this.lastRequestAt = Date.now();
   }
 }
