@@ -134,7 +134,29 @@ export class HttpApiFootballClient implements ApiFootballClient {
       this.limit = Number(limitHeader);
     }
 
-    const body = (await response.json()) as T;
+    const body = (await response.json()) as T & { errors?: unknown };
+
+    // API-Football signals errors (invalid params, plan restrictions, the
+    // daily quota) inside the body with an HTTP 200 — verified live: a
+    // quota-exceeded response still returns status 200 with an empty
+    // `response` and errors.requests set, and the remaining-quota header is
+    // not a reliable signal at that point (it read 99 while genuinely
+    // blocked). response.ok alone is not enough.
+    const apiErrors = this.extractErrorMessage(body.errors);
+
+    if (apiErrors) {
+      if (/request limit/i.test(apiErrors)) {
+        // The header can't be trusted here — force the guard to trip so
+        // the rest of this run skips gracefully instead of retrying.
+        this.remaining = 0;
+      }
+
+      throw new AppError(
+        `API-Football request failed: ${apiErrors}`,
+        response.status,
+        "API_FOOTBALL_REQUEST_FAILED",
+      );
+    }
 
     if (!response.ok) {
       throw new AppError(
@@ -145,6 +167,19 @@ export class HttpApiFootballClient implements ApiFootballClient {
     }
 
     return body;
+  }
+
+  private extractErrorMessage(errors: unknown): string | undefined {
+    if (Array.isArray(errors)) {
+      return errors.length > 0 ? errors.join("; ") : undefined;
+    }
+
+    if (errors && typeof errors === "object") {
+      const values = Object.values(errors as Record<string, unknown>);
+      return values.length > 0 ? values.join("; ") : undefined;
+    }
+
+    return undefined;
   }
 
   private async throttle(): Promise<void> {
