@@ -3,7 +3,7 @@ import type {
   ApiFootballClient,
   ApiFootballTeam,
 } from "../../integrations/apiFootball/ApiFootballClient.js";
-import { normalizeClubName } from "./PrismaFootballSyncService.js";
+import { normalizeClubName } from "./nameMatching.js";
 import type { SyncTargetLeague } from "./types.js";
 
 interface MappableClub {

@@ -4,7 +4,7 @@ import type {
   ApiFootballSquadPlayer,
 } from "../../integrations/apiFootball/ApiFootballClient.js";
 import type { FailedClub } from "./FootballSyncService.js";
-import { slugifyLeagueName } from "./PrismaFootballSyncService.js";
+import { slugifyLeagueName } from "./nameMatching.js";
 import type { SyncTargetLeague } from "./types.js";
 
 interface SquadSyncClub {
