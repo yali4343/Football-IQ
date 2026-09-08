@@ -12,6 +12,13 @@ datasource db {
   provider = "postgresql"
 }
 
+model League {
+  id                  Int    @id @default(autoincrement())
+  name                String
+  footballDataId      Int    @unique
+  apiFootballLeagueId Int?   @unique
+}
+
 model Club {
   id      Int      @id @default(autoincrement())
   name    String
