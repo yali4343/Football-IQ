@@ -26,4 +26,9 @@ model Player {
   position String
   clubId   Int
   club     Club   @relation(fields: [clubId], references: [id])
+<<<<<<< Updated upstream
+=======
+
+  @@index([clubId])
+>>>>>>> Stashed changes
 }
