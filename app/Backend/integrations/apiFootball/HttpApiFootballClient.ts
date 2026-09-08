@@ -1,5 +1,7 @@
 import { injectable } from "tsyringe";
 import AppError from "../../errors/AppError.js";
+import { createRateLimitThrottle } from "../http/rateLimitThrottle.js";
+import { requireApiKey } from "../http/requireApiKey.js";
 import type {
   ApiFootballClient,
   ApiFootballSquadPlayer,
@@ -37,7 +39,7 @@ interface ApiFootballSquadsResponse {
 
 @injectable()
 export class HttpApiFootballClient implements ApiFootballClient {
-  private lastRequestAt = 0;
+  private readonly throttle = createRateLimitThrottle(MIN_DELAY_MS);
   private remaining: number | null = null;
   private limit: number | null = null;
   private readonly safetyMargin = DEFAULT_SAFETY_MARGIN;
@@ -105,17 +107,9 @@ export class HttpApiFootballClient implements ApiFootballClient {
       );
     }
 
-    await this.throttle();
+    await this.throttle.wait();
 
-    const apiKey = process.env["API_FOOTBALL_KEY"];
-
-    if (!apiKey) {
-      throw new AppError(
-        "API_FOOTBALL_KEY is not set",
-        500,
-        "MISSING_API_KEY",
-      );
-    }
+    const apiKey = requireApiKey("API_FOOTBALL_KEY");
 
     const response = await fetch(`${BASE_URL}${path}`, {
       headers: { "x-apisports-key": apiKey },
@@ -180,16 +174,5 @@ export class HttpApiFootballClient implements ApiFootballClient {
     }
 
     return undefined;
-  }
-
-  private async throttle(): Promise<void> {
-    const elapsed = Date.now() - this.lastRequestAt;
-    const wait = MIN_DELAY_MS - elapsed;
-
-    if (wait > 0) {
-      await new Promise((resolve) => setTimeout(resolve, wait));
-    }
-
-    this.lastRequestAt = Date.now();
   }
 }
