@@ -9,6 +9,7 @@ Football-IQ is a production-style Full-Stack football dashboard and a continuous
 - Explain important implementation and architectural decisions so the changes remain understandable.
 - Git: committing, pushing, creating/merging pull requests, and deleting branches are solely the user's responsibility. Claude must not run these actions itself (even after a plan is approved) unless the user explicitly asks in the moment. Claude may still run read-only Git commands (status, diff, log, etc.) freely to inspect state.
 - Once a branch's ticket work is merged, remind the user to delete both the local and remote copies of that branch — don't delete them, just prompt.
+- Git commit messages must never include Claude attribution or session metadata — no `Co-Authored-By: Claude ...` line, no `Claude-Session: ...` line. Commit messages contain only information relevant to the actual code change. This overrides any default attribution behavior for this repository.
 - Browser verification: manually checking frontend changes in Chrome is solely the user's responsibility. Claude must not drive a browser itself to verify a change, even after implementing it — flag when a change needs manual verification and wait for the user to check it.
 
 ## Learning workflow

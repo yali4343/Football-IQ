@@ -5,12 +5,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "build": "tsc",
     "dev": "npm run build && node dist/main.js",
     "dev:nodemon": "nodemon --ext ts,js,json --exec \"npm run build && node dist/main.js\"",
     "start": "npm run build && node dist/main.js",
     "db:seed": "npm run build && node dist/prisma/seed.js",
+    "sync:football-data": "npm run build && node dist/sync/syncFootballData.js",
     "lint": "oxlint"
   },
   "keywords": [],
@@ -35,6 +36,7 @@
     "@types/pg": "^8.23.1",
     "nodemon": "^3.1.14",
     "oxlint": "^1.81.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
   }
 }
