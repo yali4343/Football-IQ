@@ -2,10 +2,12 @@ import { inject, injectable } from "tsyringe";
 import type { PrismaClient } from "../generated/prisma/client.js";
 import type {
   ApiFootballClient,
+  ApiFootballSquadPlayer,
   ApiFootballTeam,
 } from "../integrations/apiFootball/ApiFootballClient.js";
 import type { FootballDataClient } from "../integrations/footballData/FootballDataClient.js";
 import type {
+  FailedClub,
   FootballSyncService,
   LeagueMembershipSummary,
   SyncOptions,
@@ -26,12 +28,21 @@ interface MappableClub {
   apiFootballId: number | null;
 }
 
+interface SquadSyncClub {
+  id: number;
+  name: string;
+  apiFootballId: number;
+  squadLastSyncedAt: Date | null;
+}
+
 // API-Football's free plan only allows recent-but-not-current seasons on
 // /teams (verified live: 2025 is rejected, 2022-2024 is allowed). That's
 // fine here — this endpoint is only used to look up stable team identities
 // (id/name/code), not to determine current league membership, and team
 // codes/names rarely change season to season.
 const DIRECTORY_SEASON = 2024;
+
+const FRESHNESS_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export function slugifyLeagueName(name: string): string {
   return name
@@ -82,6 +93,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
 
     const summaries: LeagueMembershipSummary[] = [];
     const directoryCache = new Map<number, ApiFootballTeam[]>();
+    const force = options.force ?? false;
 
     for (const league of targetLeagues) {
       const membership = await this.syncLeagueMembership(league);
@@ -90,16 +102,27 @@ export class PrismaFootballSyncService implements FootballSyncService {
         const mapping = await this.mapLeagueClubs(
           league,
           directoryCache,
-          options.force ?? false,
+          force,
         );
         membership.clubsMapped = mapping.mapped;
         membership.unmappedClubs = mapping.unmapped;
+
+        const squads = await this.syncLeagueSquads(league, force);
+        membership.playersCreated = squads.playersCreated;
+        membership.playersUpdated = squads.playersUpdated;
+        membership.playersDeactivated = squads.playersDeactivated;
+        membership.clubsSkippedFresh = squads.clubsSkippedFresh;
+        membership.clubsSkippedQuota = squads.clubsSkippedQuota;
+        membership.failedClubs = squads.failedClubs;
       }
 
       summaries.push(membership);
     }
 
-    return { leagues: summaries };
+    return {
+      leagues: summaries,
+      requestsUsed: this.apiFootballClient.getRequestsUsed(),
+    };
   }
 
   private async syncLeagueMembership(
@@ -186,6 +209,12 @@ export class PrismaFootballSyncService implements FootballSyncService {
       clubsDeactivated: deactivated.count,
       clubsMapped: 0,
       unmappedClubs: [],
+      playersCreated: 0,
+      playersUpdated: 0,
+      playersDeactivated: 0,
+      clubsSkippedFresh: 0,
+      clubsSkippedQuota: 0,
+      failedClubs: [],
       failed: false,
     };
   }
@@ -249,6 +278,10 @@ export class PrismaFootballSyncService implements FootballSyncService {
         data: { apiFootballId: match.id },
       });
       return true;
+    }
+
+    if (!this.apiFootballClient.hasQuotaRemaining()) {
+      return false;
     }
 
     const searchMatch = await this.searchAndMatch(club);
@@ -349,6 +382,207 @@ export class PrismaFootballSyncService implements FootballSyncService {
     }
   }
 
+  private async syncLeagueSquads(
+    league: SyncTargetLeague,
+    force: boolean,
+  ): Promise<{
+    playersCreated: number;
+    playersUpdated: number;
+    playersDeactivated: number;
+    clubsSkippedFresh: number;
+    clubsSkippedQuota: number;
+    failedClubs: FailedClub[];
+  }> {
+    const clubs = await this.prisma.club.findMany({
+      where: {
+        leagueId: league.id,
+        isActive: true,
+        apiFootballId: { not: null },
+      },
+    });
+
+    let playersCreated = 0;
+    let playersUpdated = 0;
+    let playersDeactivated = 0;
+    let clubsSkippedFresh = 0;
+    let clubsSkippedQuota = 0;
+    const failedClubs: FailedClub[] = [];
+
+    for (const club of clubs) {
+      if (club.apiFootballId === null) {
+        continue;
+      }
+
+      if (!force && this.isFresh(club.squadLastSyncedAt)) {
+        clubsSkippedFresh += 1;
+        continue;
+      }
+
+      if (!this.apiFootballClient.hasQuotaRemaining()) {
+        clubsSkippedQuota += 1;
+        continue;
+      }
+
+      const result = await this.syncClubSquad({
+        id: club.id,
+        name: club.name,
+        apiFootballId: club.apiFootballId,
+        squadLastSyncedAt: club.squadLastSyncedAt,
+      });
+
+      if (result.status === "failed") {
+        failedClubs.push({
+          clubName: club.name,
+          error: result.error ?? "unknown error",
+        });
+      } else {
+        playersCreated += result.playersCreated;
+        playersUpdated += result.playersUpdated;
+        playersDeactivated += result.playersDeactivated;
+      }
+    }
+
+    return {
+      playersCreated,
+      playersUpdated,
+      playersDeactivated,
+      clubsSkippedFresh,
+      clubsSkippedQuota,
+      failedClubs,
+    };
+  }
+
+  private async syncClubSquad(club: SquadSyncClub): Promise<{
+    status: "synced" | "failed";
+    playersCreated: number;
+    playersUpdated: number;
+    playersDeactivated: number;
+    error?: string;
+  }> {
+    let squad: ApiFootballSquadPlayer[];
+
+    try {
+      squad = await this.apiFootballClient.getSquad(club.apiFootballId);
+    } catch (error) {
+      return this.failedSquadResult(error);
+    }
+
+    if (squad.length === 0) {
+      return this.failedSquadResult(
+        new Error(
+          "API-Football returned zero players — refusing to deactivate the whole squad",
+        ),
+      );
+    }
+
+    try {
+      const result = await this.prisma.$transaction(async (tx) => {
+        let created = 0;
+        let updated = 0;
+        const seenExternalIds: number[] = [];
+
+        for (const player of squad) {
+          seenExternalIds.push(player.id);
+
+          const existing = await tx.player.findUnique({
+            where: { externalApiId: player.id },
+          });
+
+          if (!existing) {
+            await tx.player.create({
+              data: {
+                name: player.name,
+                position: player.position,
+                age: player.age,
+                number: player.number,
+                photoUrl: player.photo,
+                externalApiId: player.id,
+                clubId: club.id,
+                isActive: true,
+              },
+            });
+            created += 1;
+            continue;
+          }
+
+          const needsUpdate =
+            existing.name !== player.name ||
+            existing.position !== player.position ||
+            existing.age !== player.age ||
+            existing.number !== player.number ||
+            existing.photoUrl !== player.photo ||
+            existing.clubId !== club.id ||
+            !existing.isActive;
+
+          if (needsUpdate) {
+            await tx.player.update({
+              where: { id: existing.id },
+              data: {
+                name: player.name,
+                position: player.position,
+                age: player.age,
+                number: player.number,
+                photoUrl: player.photo,
+                clubId: club.id,
+                isActive: true,
+              },
+            });
+            updated += 1;
+          }
+        }
+
+        const deactivated = await tx.player.updateMany({
+          where: {
+            clubId: club.id,
+            isActive: true,
+            externalApiId: { notIn: seenExternalIds },
+          },
+          data: { isActive: false },
+        });
+
+        await tx.club.update({
+          where: { id: club.id },
+          data: { squadLastSyncedAt: new Date() },
+        });
+
+        return { created, updated, deactivated: deactivated.count };
+      });
+
+      return {
+        status: "synced",
+        playersCreated: result.created,
+        playersUpdated: result.updated,
+        playersDeactivated: result.deactivated,
+      };
+    } catch (error) {
+      return this.failedSquadResult(error);
+    }
+  }
+
+  private failedSquadResult(error: unknown): {
+    status: "failed";
+    playersCreated: number;
+    playersUpdated: number;
+    playersDeactivated: number;
+    error: string;
+  } {
+    return {
+      status: "failed",
+      playersCreated: 0,
+      playersUpdated: 0,
+      playersDeactivated: 0,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+
+  private isFresh(squadLastSyncedAt: Date | null): boolean {
+    if (squadLastSyncedAt === null) {
+      return false;
+    }
+
+    return Date.now() - squadLastSyncedAt.getTime() < FRESHNESS_WINDOW_MS;
+  }
+
   private failedSummary(
     leagueName: string,
     error: unknown,
@@ -360,6 +594,12 @@ export class PrismaFootballSyncService implements FootballSyncService {
       clubsDeactivated: 0,
       clubsMapped: 0,
       unmappedClubs: [],
+      playersCreated: 0,
+      playersUpdated: 0,
+      playersDeactivated: 0,
+      clubsSkippedFresh: 0,
+      clubsSkippedQuota: 0,
+      failedClubs: [],
       failed: true,
       error: error instanceof Error ? error.message : String(error),
     };
