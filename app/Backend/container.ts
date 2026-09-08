@@ -1,9 +1,11 @@
 import { Lifecycle, container } from "tsyringe";
 import { prisma } from "./db/prismaClient.js";
+import { HttpFootballDataClient } from "./integrations/footballData/HttpFootballDataClient.js";
 import { AppLogger } from "./logging/index.js";
 import { PrismaClubService } from "./services/index.js";
 
 import type { AppConfig } from "./config/appConfig.types.js";
+import type { FootballDataClient } from "./integrations/footballData/FootballDataClient.js";
 import type { ClubService } from "./services/index.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
 
@@ -40,6 +42,16 @@ container.register<ClubService>(
   "ClubService",
   {
     useClass: PrismaClubService,
+  },
+  {
+    lifecycle: Lifecycle.Singleton,
+  },
+);
+
+container.register<FootballDataClient>(
+  "FootballDataClient",
+  {
+    useClass: HttpFootballDataClient,
   },
   {
     lifecycle: Lifecycle.Singleton,
