@@ -44,6 +44,7 @@ const DIRECTORY_SEASON = 2024;
 
 const FRESHNESS_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+// Generic kebab-case slugify — also used for club-name slugs (--club=<slug>).
 export function slugifyLeagueName(name: string): string {
   return name
     .toLowerCase()
@@ -75,6 +76,44 @@ export function normalizeClubName(name: string): string {
     .trim();
 }
 
+interface ExistingPlayer {
+  name: string;
+  position: string;
+  age: number | null;
+  number: number | null;
+  photoUrl: string | null;
+  clubId: number;
+  isActive: boolean;
+}
+
+function needsPlayerUpdate(
+  existing: ExistingPlayer,
+  player: ApiFootballSquadPlayer,
+  clubId: number,
+): boolean {
+  return (
+    existing.name !== player.name ||
+    existing.position !== player.position ||
+    existing.age !== player.age ||
+    existing.number !== player.number ||
+    existing.photoUrl !== player.photo ||
+    existing.clubId !== clubId ||
+    !existing.isActive
+  );
+}
+
+function playerWriteData(player: ApiFootballSquadPlayer, clubId: number) {
+  return {
+    name: player.name,
+    position: player.position,
+    age: player.age,
+    number: player.number,
+    photoUrl: player.photo,
+    clubId,
+    isActive: true,
+  };
+}
+
 @injectable()
 export class PrismaFootballSyncService implements FootballSyncService {
   constructor(
@@ -94,20 +133,27 @@ export class PrismaFootballSyncService implements FootballSyncService {
     const summaries: LeagueMembershipSummary[] = [];
     const directoryCache = new Map<number, ApiFootballTeam[]>();
     const force = options.force ?? false;
+    const dryRun = options.dryRun ?? false;
 
     for (const league of targetLeagues) {
-      const membership = await this.syncLeagueMembership(league);
+      const membership = await this.syncLeagueMembership(league, dryRun);
 
       if (!membership.failed) {
         const mapping = await this.mapLeagueClubs(
           league,
           directoryCache,
           force,
+          dryRun,
         );
         membership.clubsMapped = mapping.mapped;
         membership.unmappedClubs = mapping.unmapped;
 
-        const squads = await this.syncLeagueSquads(league, force);
+        const squads = await this.syncLeagueSquads(
+          league,
+          force,
+          dryRun,
+          options.clubSlug,
+        );
         membership.playersCreated = squads.playersCreated;
         membership.playersUpdated = squads.playersUpdated;
         membership.playersDeactivated = squads.playersDeactivated;
@@ -127,6 +173,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
 
   private async syncLeagueMembership(
     league: SyncTargetLeague,
+    dryRun: boolean,
   ): Promise<LeagueMembershipSummary> {
     let teams;
 
@@ -159,16 +206,18 @@ export class PrismaFootballSyncService implements FootballSyncService {
       });
 
       if (!existing) {
-        await this.prisma.club.create({
-          data: {
-            name: team.name,
-            stadium: team.venue,
-            footballDataId: team.id,
-            footballDataCode: team.tla,
-            leagueId: league.id,
-            isActive: true,
-          },
-        });
+        if (!dryRun) {
+          await this.prisma.club.create({
+            data: {
+              name: team.name,
+              stadium: team.venue,
+              footballDataId: team.id,
+              footballDataCode: team.tla,
+              leagueId: league.id,
+              isActive: true,
+            },
+          });
+        }
         clubsCreated += 1;
         continue;
       }
@@ -180,33 +229,40 @@ export class PrismaFootballSyncService implements FootballSyncService {
         !existing.isActive;
 
       if (needsUpdate) {
-        await this.prisma.club.update({
-          where: { id: existing.id },
-          data: {
-            name: team.name,
-            stadium: team.venue,
-            footballDataCode: team.tla,
-            isActive: true,
-          },
-        });
+        if (!dryRun) {
+          await this.prisma.club.update({
+            where: { id: existing.id },
+            data: {
+              name: team.name,
+              stadium: team.venue,
+              footballDataCode: team.tla,
+              isActive: true,
+            },
+          });
+        }
         clubsUpdated += 1;
       }
     }
 
-    const deactivated = await this.prisma.club.updateMany({
-      where: {
-        leagueId: league.id,
-        isActive: true,
-        footballDataId: { notIn: seenFootballDataIds },
-      },
-      data: { isActive: false },
-    });
+    const deactivateWhere = {
+      leagueId: league.id,
+      isActive: true,
+      footballDataId: { notIn: seenFootballDataIds },
+    };
+    const clubsDeactivated = dryRun
+      ? await this.prisma.club.count({ where: deactivateWhere })
+      : (
+          await this.prisma.club.updateMany({
+            where: deactivateWhere,
+            data: { isActive: false },
+          })
+        ).count;
 
     return {
       leagueName: league.name,
       clubsCreated,
       clubsUpdated,
-      clubsDeactivated: deactivated.count,
+      clubsDeactivated,
       clubsMapped: 0,
       unmappedClubs: [],
       playersCreated: 0,
@@ -223,6 +279,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
     league: SyncTargetLeague,
     directoryCache: Map<number, ApiFootballTeam[]>,
     force: boolean,
+    dryRun: boolean,
   ): Promise<{ mapped: number; unmapped: string[] }> {
     const clubs = await this.prisma.club.findMany({
       where: {
@@ -241,6 +298,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
         club,
         league,
         directoryCache,
+        dryRun,
       );
 
       if (nowMapped) {
@@ -260,6 +318,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
     club: MappableClub,
     league: SyncTargetLeague,
     directoryCache: Map<number, ApiFootballTeam[]>,
+    dryRun: boolean,
   ): Promise<boolean> {
     if (league.apiFootballLeagueId === null) {
       return false;
@@ -273,10 +332,12 @@ export class PrismaFootballSyncService implements FootballSyncService {
     const match = this.pickUniqueMatch(directory, club);
 
     if (match) {
-      await this.prisma.club.update({
-        where: { id: club.id },
-        data: { apiFootballId: match.id },
-      });
+      if (!dryRun) {
+        await this.prisma.club.update({
+          where: { id: club.id },
+          data: { apiFootballId: match.id },
+        });
+      }
       return true;
     }
 
@@ -287,10 +348,12 @@ export class PrismaFootballSyncService implements FootballSyncService {
     const searchMatch = await this.searchAndMatch(club);
 
     if (searchMatch) {
-      await this.prisma.club.update({
-        where: { id: club.id },
-        data: { apiFootballId: searchMatch.id },
-      });
+      if (!dryRun) {
+        await this.prisma.club.update({
+          where: { id: club.id },
+          data: { apiFootballId: searchMatch.id },
+        });
+      }
       return true;
     }
 
@@ -385,6 +448,8 @@ export class PrismaFootballSyncService implements FootballSyncService {
   private async syncLeagueSquads(
     league: SyncTargetLeague,
     force: boolean,
+    dryRun: boolean,
+    clubSlug: string | undefined,
   ): Promise<{
     playersCreated: number;
     playersUpdated: number;
@@ -393,13 +458,16 @@ export class PrismaFootballSyncService implements FootballSyncService {
     clubsSkippedQuota: number;
     failedClubs: FailedClub[];
   }> {
-    const clubs = await this.prisma.club.findMany({
+    const allClubs = await this.prisma.club.findMany({
       where: {
         leagueId: league.id,
         isActive: true,
         apiFootballId: { not: null },
       },
     });
+    const clubs = clubSlug
+      ? allClubs.filter((club) => slugifyLeagueName(club.name) === clubSlug)
+      : allClubs;
 
     let playersCreated = 0;
     let playersUpdated = 0;
@@ -423,12 +491,15 @@ export class PrismaFootballSyncService implements FootballSyncService {
         continue;
       }
 
-      const result = await this.syncClubSquad({
-        id: club.id,
-        name: club.name,
-        apiFootballId: club.apiFootballId,
-        squadLastSyncedAt: club.squadLastSyncedAt,
-      });
+      const result = await this.syncClubSquad(
+        {
+          id: club.id,
+          name: club.name,
+          apiFootballId: club.apiFootballId,
+          squadLastSyncedAt: club.squadLastSyncedAt,
+        },
+        dryRun,
+      );
 
       if (result.status === "failed") {
         failedClubs.push({
@@ -452,7 +523,10 @@ export class PrismaFootballSyncService implements FootballSyncService {
     };
   }
 
-  private async syncClubSquad(club: SquadSyncClub): Promise<{
+  private async syncClubSquad(
+    club: SquadSyncClub,
+    dryRun: boolean,
+  ): Promise<{
     status: "synced" | "failed";
     playersCreated: number;
     playersUpdated: number;
@@ -475,6 +549,10 @@ export class PrismaFootballSyncService implements FootballSyncService {
       );
     }
 
+    if (dryRun) {
+      return this.diffClubSquad(club, squad);
+    }
+
     try {
       const result = await this.prisma.$transaction(async (tx) => {
         let created = 0;
@@ -491,41 +569,18 @@ export class PrismaFootballSyncService implements FootballSyncService {
           if (!existing) {
             await tx.player.create({
               data: {
-                name: player.name,
-                position: player.position,
-                age: player.age,
-                number: player.number,
-                photoUrl: player.photo,
+                ...playerWriteData(player, club.id),
                 externalApiId: player.id,
-                clubId: club.id,
-                isActive: true,
               },
             });
             created += 1;
             continue;
           }
 
-          const needsUpdate =
-            existing.name !== player.name ||
-            existing.position !== player.position ||
-            existing.age !== player.age ||
-            existing.number !== player.number ||
-            existing.photoUrl !== player.photo ||
-            existing.clubId !== club.id ||
-            !existing.isActive;
-
-          if (needsUpdate) {
+          if (needsPlayerUpdate(existing, player, club.id)) {
             await tx.player.update({
               where: { id: existing.id },
-              data: {
-                name: player.name,
-                position: player.position,
-                age: player.age,
-                number: player.number,
-                photoUrl: player.photo,
-                clubId: club.id,
-                isActive: true,
-              },
+              data: playerWriteData(player, club.id),
             });
             updated += 1;
           }
@@ -557,6 +612,54 @@ export class PrismaFootballSyncService implements FootballSyncService {
     } catch (error) {
       return this.failedSquadResult(error);
     }
+  }
+
+  // Mirrors syncClubSquad's real transaction with reads instead of writes,
+  // and deliberately never touches squadLastSyncedAt.
+  private async diffClubSquad(
+    club: SquadSyncClub,
+    squad: ApiFootballSquadPlayer[],
+  ): Promise<{
+    status: "synced";
+    playersCreated: number;
+    playersUpdated: number;
+    playersDeactivated: number;
+  }> {
+    let created = 0;
+    let updated = 0;
+    const seenExternalIds: number[] = [];
+
+    for (const player of squad) {
+      seenExternalIds.push(player.id);
+
+      const existing = await this.prisma.player.findUnique({
+        where: { externalApiId: player.id },
+      });
+
+      if (!existing) {
+        created += 1;
+        continue;
+      }
+
+      if (needsPlayerUpdate(existing, player, club.id)) {
+        updated += 1;
+      }
+    }
+
+    const deactivated = await this.prisma.player.count({
+      where: {
+        clubId: club.id,
+        isActive: true,
+        externalApiId: { notIn: seenExternalIds },
+      },
+    });
+
+    return {
+      status: "synced",
+      playersCreated: created,
+      playersUpdated: updated,
+      playersDeactivated: deactivated,
+    };
   }
 
   private failedSquadResult(error: unknown): {

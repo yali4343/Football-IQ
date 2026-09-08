@@ -7,7 +7,9 @@ import type { FootballSyncService } from "../services/index.js";
 
 interface SyncArgs {
   leagueSlug?: string;
+  clubSlug?: string;
   force?: boolean;
+  dryRun?: boolean;
 }
 
 function parseArgs(argv: string[]): SyncArgs {
@@ -16,8 +18,12 @@ function parseArgs(argv: string[]): SyncArgs {
   for (const arg of argv) {
     if (arg.startsWith("--league=")) {
       args.leagueSlug = arg.slice("--league=".length);
+    } else if (arg.startsWith("--club=")) {
+      args.clubSlug = arg.slice("--club=".length);
     } else if (arg === "--force") {
       args.force = true;
+    } else if (arg === "--dry-run") {
+      args.dryRun = true;
     }
   }
 
@@ -35,7 +41,9 @@ async function main() {
 
   let hasFailure = summary.leagues.length === 0;
 
-  logger.log("Football data sync — league membership summary:");
+  logger.log(
+    `Football data sync summary${args.dryRun ? " (dry run — nothing written)" : ""}:`,
+  );
 
   if (summary.leagues.length === 0) {
     logger.log(
@@ -51,13 +59,30 @@ async function main() {
     }
 
     logger.log(
-      `  ${league.leagueName}: created ${league.clubsCreated}, updated ${league.clubsUpdated}, deactivated ${league.clubsDeactivated}, mapped ${league.clubsMapped}`,
+      `  ${league.leagueName}: clubs created ${league.clubsCreated}, updated ${league.clubsUpdated}, deactivated ${league.clubsDeactivated}, mapped ${league.clubsMapped}`,
+    );
+    logger.log(
+      `    players created ${league.playersCreated}, updated ${league.playersUpdated}, deactivated ${league.playersDeactivated}`,
+    );
+    logger.log(
+      `    clubs skipped: ${league.clubsSkippedFresh} fresh, ${league.clubsSkippedQuota} quota`,
     );
 
     if (league.unmappedClubs.length > 0) {
       logger.log(`    unmapped: ${league.unmappedClubs.join(", ")}`);
     }
+
+    if (league.failedClubs.length > 0) {
+      hasFailure = true;
+      for (const failedClub of league.failedClubs) {
+        logger.log(`    FAILED club ${failedClub.clubName}: ${failedClub.error}`);
+      }
+    }
   }
+
+  logger.log(
+    `API-Football requests used: ${summary.requestsUsed ?? "unknown"} / 100`,
+  );
 
   process.exit(hasFailure ? 1 : 0);
 }
