@@ -3,6 +3,8 @@ export interface LeagueMembershipSummary {
   clubsCreated: number;
   clubsUpdated: number;
   clubsDeactivated: number;
+  clubsMapped: number;
+  unmappedClubs: string[];
   failed: boolean;
   error?: string;
 }
@@ -11,6 +13,11 @@ export interface SyncSummary {
   leagues: LeagueMembershipSummary[];
 }
 
+export interface SyncOptions {
+  leagueSlug?: string;
+  force?: boolean;
+}
+
 export interface FootballSyncService {
-  run(options?: { leagueSlug?: string }): Promise<SyncSummary>;
+  run(options?: SyncOptions): Promise<SyncSummary>;
 }

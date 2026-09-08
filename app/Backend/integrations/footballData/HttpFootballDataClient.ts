@@ -10,7 +10,12 @@ const BASE_URL = "https://api.football-data.org/v4";
 const MIN_DELAY_MS = 6500;
 
 interface FootballDataTeamsResponse {
-  teams?: Array<{ id: number; name: string; venue: string | null }>;
+  teams?: Array<{
+    id: number;
+    name: string;
+    venue: string | null;
+    tla: string | null;
+  }>;
   message?: string;
 }
 
@@ -54,6 +59,7 @@ export class HttpFootballDataClient implements FootballDataClient {
       id: team.id,
       name: team.name,
       venue: team.venue ?? null,
+      tla: team.tla ?? null,
     }));
   }
 
