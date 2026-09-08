@@ -1,7 +1,7 @@
 export function PreviewBlock({ title, description, className = "", children }) {
   return (
     <section
-      className={`relative overflow-hidden border border-border bg-surface p-5 sm:p-6 ${className}`}
+      className={`relative overflow-hidden rounded-panel border border-border bg-surface p-5 sm:p-6 ${className}`}
       aria-labelledby={`${title.toLowerCase().replaceAll(" ", "-")}-heading`}
     >
       <div className="absolute right-0 top-0 h-16 w-16 border-b border-l border-border bg-[#f1f4ef]" />

@@ -7,7 +7,7 @@ export function StatusMessage({ children, tone = "neutral" }) {
 
   return (
     <p
-      className={`border-l-2 px-3 py-2 text-sm ${toneClasses[tone]}`}
+      className={`rounded-r-panel border-l-2 px-3 py-2 text-sm ${toneClasses[tone]}`}
       role={tone === "error" ? "alert" : "status"}
       aria-live={tone === "error" ? "assertive" : "polite"}
     >
