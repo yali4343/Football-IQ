@@ -7,6 +7,7 @@ import type { FootballSyncService } from "../services/index.js";
 
 interface SyncArgs {
   leagueSlug?: string;
+  force?: boolean;
 }
 
 function parseArgs(argv: string[]): SyncArgs {
@@ -15,6 +16,8 @@ function parseArgs(argv: string[]): SyncArgs {
   for (const arg of argv) {
     if (arg.startsWith("--league=")) {
       args.leagueSlug = arg.slice("--league=".length);
+    } else if (arg === "--force") {
+      args.force = true;
     }
   }
 
@@ -48,8 +51,12 @@ async function main() {
     }
 
     logger.log(
-      `  ${league.leagueName}: created ${league.clubsCreated}, updated ${league.clubsUpdated}, deactivated ${league.clubsDeactivated}`,
+      `  ${league.leagueName}: created ${league.clubsCreated}, updated ${league.clubsUpdated}, deactivated ${league.clubsDeactivated}, mapped ${league.clubsMapped}`,
     );
+
+    if (league.unmappedClubs.length > 0) {
+      logger.log(`    unmapped: ${league.unmappedClubs.join(", ")}`);
+    }
   }
 
   process.exit(hasFailure ? 1 : 0);

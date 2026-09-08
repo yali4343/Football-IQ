@@ -1,19 +1,34 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PrismaClient } from "../generated/prisma/client.js";
+import type { ApiFootballClient } from "../integrations/apiFootball/ApiFootballClient.js";
 import type {
   FootballDataClient,
   FootballDataTeam,
 } from "../integrations/footballData/FootballDataClient.js";
 import { PrismaFootballSyncService } from "./PrismaFootballSyncService.js";
 
-const premierLeague = { id: 1, name: "Premier League", footballDataId: 2021 };
-const laLiga = { id: 2, name: "La Liga", footballDataId: 2014 };
+// These fixtures leave apiFootballLeagueId null: this test file covers
+// membership sync only, so mapping is a guaranteed no-op that never touches
+// the (unused) ApiFootballClient stub below. Mapping gets its own tests.
+const premierLeague = {
+  id: 1,
+  name: "Premier League",
+  footballDataId: 2021,
+  apiFootballLeagueId: null,
+};
+const laLiga = {
+  id: 2,
+  name: "La Liga",
+  footballDataId: 2014,
+  apiFootballLeagueId: null,
+};
 
 function createMockPrisma() {
   return {
     league: { findMany: vi.fn() },
     club: {
       findUnique: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
@@ -35,13 +50,21 @@ function createMockClient(
   };
 }
 
+const unusedApiFootballClient: ApiFootballClient = {
+  hasQuotaRemaining: () => true,
+  getLeagueDirectory: () => Promise.reject(new Error("not used")),
+  searchTeam: () => Promise.reject(new Error("not used")),
+};
+
 function service(
   prisma: ReturnType<typeof createMockPrisma>,
   client: FootballDataClient,
+  apiFootballClient: ApiFootballClient = unusedApiFootballClient,
 ) {
   return new PrismaFootballSyncService(
     prisma as unknown as PrismaClient,
     client,
+    apiFootballClient,
   );
 }
 
