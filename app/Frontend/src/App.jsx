@@ -32,7 +32,7 @@ function App() {
       <main className="dashboard-shell" aria-busy="true">
         <div className="dashboard-frame">
           <p className="eyebrow">Matchday dashboard</p>
-          <h1 className="font-display text-5xl leading-none text-[#17201d] sm:text-7xl">
+          <h1 className="font-display text-5xl leading-none text-ink sm:text-7xl">
             {dashboardTitle}
           </h1>
           <StatusMessage>Loading clubs...</StatusMessage>
@@ -46,7 +46,7 @@ function App() {
       <main className="dashboard-shell">
         <div className="dashboard-frame">
           <p className="eyebrow">Matchday dashboard</p>
-          <h1 className="font-display text-5xl leading-none text-[#17201d] sm:text-7xl">
+          <h1 className="font-display text-5xl leading-none text-ink sm:text-7xl">
             {dashboardTitle}
           </h1>
           <StatusMessage tone="error">
@@ -60,7 +60,7 @@ function App() {
   return (
     <main className="dashboard-shell" style={dashboardStyle}>
       <div className="dashboard-frame">
-        <header className="flex items-start justify-between gap-6 border-b border-[#cbd4cd] pb-6">
+        <header className="flex items-start justify-between gap-6 border-b border-border-strong pb-6">
           <div>
             <p className="eyebrow">Matchday dashboard</p>
           </div>
@@ -78,7 +78,7 @@ function App() {
                   <p className="eyebrow text-(--club-ink)">Selected club</p>
 
                   <p
-                    className="mt-2 max-w-xs text-sm leading-6 text-[#53645c]"
+                    className="mt-2 max-w-xs text-sm leading-6 text-muted"
                     aria-live="polite"
                   >
                     {selectedClub
@@ -96,12 +96,12 @@ function App() {
                   {selectedClub?.name ?? "Choose your club"}
                 </h2>
                 {selectedClub ? (
-                  <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#53645c]">
+                  <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
                     <span>{selectedClub.league}</span>
                     <span>{selectedClub.stadium}</span>
                   </div>
                 ) : (
-                  <p className="mt-6 max-w-md text-sm leading-6 text-[#53645c]">
+                  <p className="mt-6 max-w-md text-sm leading-6 text-muted">
                     Your club details and accent will appear here after you make
                     a selection.
                   </p>
@@ -126,7 +126,7 @@ function App() {
             </div>
 
             <label
-              className="mt-8 block text-sm font-semibold text-[#34443b]"
+              className="mt-8 block text-sm font-semibold text-body"
               htmlFor="league-select"
             >
               League
@@ -147,7 +147,7 @@ function App() {
             </select>
 
             <label
-              className="mt-5 block text-sm font-semibold text-[#34443b]"
+              className="mt-5 block text-sm font-semibold text-body"
               htmlFor="club-select"
             >
               Club
@@ -183,7 +183,7 @@ function App() {
             {!selectedLeague && (
               <p
                 id="club-select-help"
-                className="mt-2 text-sm leading-6 text-[#68736f]"
+                className="mt-2 text-sm leading-6 text-subtle"
               >
                 Select a league first.
               </p>
@@ -197,12 +197,12 @@ function App() {
         </div>
 
         <section className="mt-16" aria-labelledby="preview-heading">
-          <div className="mb-5 flex items-end justify-between gap-6 border-b border-[#cbd4cd] pb-4">
+          <div className="mb-5 flex items-end justify-between gap-6 border-b border-border-strong pb-4">
             <div>
               <p className="eyebrow">The next whistle</p>
               <h2
                 id="preview-heading"
-                className="font-display text-4xl leading-none text-[#17201d]"
+                className="font-display text-4xl leading-none text-ink"
               >
                 Matchday data
               </h2>
@@ -244,15 +244,15 @@ function App() {
           >
             {selectedClub &&
               (isLoadingPlayers ? (
-                <p className="mt-3 text-sm text-[#68736f]">
+                <p className="mt-3 text-sm text-subtle">
                   Loading squad...
                 </p>
               ) : (
-                <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-[#34443b] sm:grid-cols-4">
+                <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-body sm:grid-cols-4">
                   {players.map((player) => (
                     <li key={player.id}>
                       <span className="font-semibold">{player.name}</span>
-                      <span className="block text-xs text-[#68736f]">
+                      <span className="block text-xs text-subtle">
                         {player.position}
                       </span>
                     </li>

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  color: #17201d;
+  color: var(--color-ink);
   background: #f5f4ef;
   font-family: "DM Sans", "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -12,6 +12,14 @@
 
 @theme {
   --font-display: "Arial Narrow", "Aptos Narrow", "Segoe UI", sans-serif;
+
+  --color-ink: #17201d;
+  --color-body: #34443b;
+  --color-muted: #53645c;
+  --color-subtle: #68736f;
+  --color-border: #d8ded8;
+  --color-border-strong: #cbd4cd;
+  --color-surface: #fffefa;
 }
 
 * {
@@ -55,7 +63,7 @@ select:focus-visible {
 
 .eyebrow {
   margin: 0 0 0.75rem;
-  color: #68736f;
+  color: var(--color-subtle);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -105,7 +113,7 @@ select:focus-visible {
 
 .selector-panel {
   border-top: 4px solid var(--club-primary);
-  background: #fffefa;
+  background: var(--color-surface);
   padding: 1.5rem;
 }
 
@@ -117,8 +125,8 @@ select:focus-visible {
   border: 1px solid #b4c0b7;
   background-color: #f8faf6;
   background-image:
-    linear-gradient(45deg, transparent 50%, #53645c 50%),
-    linear-gradient(135deg, #53645c 50%, transparent 50%);
+    linear-gradient(45deg, transparent 50%, var(--color-muted) 50%),
+    linear-gradient(135deg, var(--color-muted) 50%, transparent 50%);
   background-position:
     calc(100% - 1.1rem) 1.25rem,
     calc(100% - 0.75rem) 1.25rem;
@@ -127,7 +135,7 @@ select:focus-visible {
     0.35rem 0.35rem,
     0.35rem 0.35rem;
   padding: 0.75rem 2.5rem 0.75rem 0.85rem;
-  color: #17201d;
+  color: var(--color-ink);
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease;
