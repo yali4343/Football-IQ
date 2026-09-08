@@ -4,56 +4,31 @@ import type {
   ApiFootballClient,
   ApiFootballTeam,
 } from "../../integrations/apiFootball/ApiFootballClient.js";
-import type { FootballDataClient } from "../../integrations/footballData/FootballDataClient.js";
-import { PrismaFootballSyncService } from "./PrismaFootballSyncService.js";
+import { ClubMapper } from "./ClubMapper.js";
+import type { SyncTargetLeague } from "./types.js";
 
-const league = {
+const league: SyncTargetLeague = {
   id: 1,
   name: "Bundesliga",
   footballDataId: 2002,
   apiFootballLeagueId: 78,
 };
 
-// Membership sync always runs before mapping; give it one team that exactly
-// matches the existing club fixture below so it's a no-op and mapping is
-// what's actually under test.
-function createMockFootballDataClient(): FootballDataClient {
-  return {
-    getCompetitionTeams: vi.fn().mockResolvedValue([
-      { id: 999, name: "Some Club", venue: null, tla: "SC" },
-    ]),
-  };
-}
-
 function createMockPrisma(mappableClubs: unknown[]) {
   return {
-    league: { findMany: vi.fn().mockResolvedValue([league]) },
     club: {
-      findUnique: vi.fn().mockResolvedValue({
-        id: 100,
-        name: "Some Club",
-        stadium: null,
-        footballDataId: 999,
-        footballDataCode: "SC",
-        isActive: true,
-      }),
       findMany: vi.fn().mockResolvedValue(mappableClubs),
-      create: vi.fn(),
       update: vi.fn(),
-      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      create: vi.fn(),
     },
   };
 }
 
-function service(
+function mapper(
   prisma: ReturnType<typeof createMockPrisma>,
   apiFootballClient: ApiFootballClient,
 ) {
-  return new PrismaFootballSyncService(
-    prisma as unknown as PrismaClient,
-    createMockFootballDataClient(),
-    apiFootballClient,
-  );
+  return new ClubMapper(prisma as unknown as PrismaClient, apiFootballClient);
 }
 
 function alwaysAvailableClient(
@@ -69,24 +44,30 @@ function alwaysAvailableClient(
   };
 }
 
-describe("PrismaFootballSyncService mapping", () => {
+describe("ClubMapper", () => {
   it("maps by exact 3-letter code", async () => {
-    const club = { id: 5, name: "Arsenal FC", footballDataCode: "ARS", apiFootballId: null };
+    const club = {
+      id: 5,
+      name: "Arsenal FC",
+      footballDataCode: "ARS",
+      apiFootballId: null,
+    };
     const prisma = createMockPrisma([club]);
     const client = alwaysAvailableClient([
       { id: 42, name: "Arsenal", code: "ARS" },
     ]);
 
-    const summary = await service(prisma, client).run();
+    const result = await mapper(prisma, client).mapLeagueClubs(
+      league,
+      false,
+      false,
+    );
 
     expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: 5 },
       data: { apiFootballId: 42 },
     });
-    expect(summary.leagues[0]).toMatchObject({
-      clubsMapped: 1,
-      unmappedClubs: [],
-    });
+    expect(result).toMatchObject({ mapped: 1, unmapped: [] });
   });
 
   it("falls back to normalized-name match when the code doesn't match", async () => {
@@ -101,13 +82,17 @@ describe("PrismaFootballSyncService mapping", () => {
       { id: 42, name: "Arsenal", code: "DIFFERENT" },
     ]);
 
-    const summary = await service(prisma, client).run();
+    const result = await mapper(prisma, client).mapLeagueClubs(
+      league,
+      false,
+      false,
+    );
 
     expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: 5 },
       data: { apiFootballId: 42 },
     });
-    expect(summary.leagues[0].clubsMapped).toBe(1);
+    expect(result.mapped).toBe(1);
   });
 
   it("reports ambiguous candidates as unmapped without creating a duplicate club", async () => {
@@ -127,21 +112,22 @@ describe("PrismaFootballSyncService mapping", () => {
     ];
     const client = alwaysAvailableClient(ambiguous, ambiguous);
 
-    const summary = await service(prisma, client).run();
+    const result = await mapper(prisma, client).mapLeagueClubs(
+      league,
+      false,
+      false,
+    );
 
     expect(prisma.club.update).not.toHaveBeenCalled();
     expect(prisma.club.create).not.toHaveBeenCalled();
-    expect(summary.leagues[0]).toMatchObject({
-      clubsMapped: 0,
-      unmappedClubs: ["Arsenal FC"],
-    });
+    expect(result).toMatchObject({ mapped: 0, unmapped: ["Arsenal FC"] });
   });
 
   it("never re-queries already-mapped clubs unless --force", async () => {
     const prisma = createMockPrisma([]);
     const client = alwaysAvailableClient([]);
 
-    await service(prisma, client).run();
+    await mapper(prisma, client).mapLeagueClubs(league, false, false);
 
     expect(prisma.club.findMany).toHaveBeenCalledWith({
       where: { leagueId: 1, isActive: true, apiFootballId: null },
@@ -152,7 +138,7 @@ describe("PrismaFootballSyncService mapping", () => {
     const prisma = createMockPrisma([]);
     const client = alwaysAvailableClient([]);
 
-    await service(prisma, client).run({ force: true });
+    await mapper(prisma, client).mapLeagueClubs(league, true, false);
 
     expect(prisma.club.findMany).toHaveBeenCalledWith({
       where: { leagueId: 1, isActive: true },
@@ -177,10 +163,36 @@ describe("PrismaFootballSyncService mapping", () => {
       getSquad: () => Promise.reject(new Error("not used")),
     };
 
-    const summary = await service(prisma, client).run();
+    const result = await mapper(prisma, client).mapLeagueClubs(
+      league,
+      false,
+      false,
+    );
 
     expect(getLeagueDirectory).not.toHaveBeenCalled();
     expect(searchTeam).not.toHaveBeenCalled();
-    expect(summary.leagues[0].unmappedClubs).toEqual(["Arsenal FC"]);
+    expect(result.unmapped).toEqual(["Arsenal FC"]);
+  });
+
+  it("--dry-run performs reads but issues zero writes", async () => {
+    const club = {
+      id: 5,
+      name: "Arsenal FC",
+      footballDataCode: "ARS",
+      apiFootballId: null,
+    };
+    const prisma = createMockPrisma([club]);
+    const client = alwaysAvailableClient([
+      { id: 42, name: "Arsenal", code: "ARS" },
+    ]);
+
+    const result = await mapper(prisma, client).mapLeagueClubs(
+      league,
+      false,
+      true,
+    );
+
+    expect(prisma.club.update).not.toHaveBeenCalled();
+    expect(result.mapped).toBe(1);
   });
 });
