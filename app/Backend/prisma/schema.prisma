@@ -12,20 +12,39 @@ datasource db {
   provider = "postgresql"
 }
 
+model League {
+  id                  Int    @id @default(autoincrement())
+  name                String
+  footballDataId      Int    @unique
+  apiFootballLeagueId Int?   @unique
+  clubs               Club[]
+}
+
 model Club {
-  id      Int      @id @default(autoincrement())
-  name    String
-  league  String
-  stadium String
-  players Player[]
+  id                Int       @id @default(autoincrement())
+  name              String
+  stadium           String?
+  leagueId          Int
+  league            League    @relation(fields: [leagueId], references: [id])
+  footballDataId    Int       @unique
+  apiFootballId     Int?      @unique
+  isActive          Boolean   @default(true)
+  squadLastSyncedAt DateTime?
+  players           Player[]
 }
 
 model Player {
-  id       Int    @id @default(autoincrement())
-  name     String
-  position String
-  clubId   Int
-  club     Club   @relation(fields: [clubId], references: [id])
+  id            Int     @id @default(autoincrement())
+  name          String
+  position      String
+  age           Int?
+  number        Int?
+  nationality   String?
+  photoUrl      String?
+  externalApiId Int     @unique
+  isActive      Boolean @default(true)
+  clubId        Int
+  club          Club    @relation(fields: [clubId], references: [id])
 
   @@index([clubId])
 }
