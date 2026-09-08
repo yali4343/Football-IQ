@@ -1,6 +1,17 @@
 import { inject, injectable } from "tsyringe";
-import type { PrismaClient } from "../generated/prisma/client.js";
+import type { Prisma, PrismaClient } from "../generated/prisma/client.js";
 import type { Club, ClubService, Player } from "./ClubService.js";
+
+type ClubWithLeague = Prisma.ClubGetPayload<{ include: { league: true } }>;
+
+function toClubDto(club: ClubWithLeague): Club {
+  return {
+    id: club.id,
+    name: club.name,
+    league: club.league.name,
+    stadium: club.stadium,
+  };
+}
 
 @injectable()
 export class PrismaClubService implements ClubService {
@@ -9,13 +20,20 @@ export class PrismaClubService implements ClubService {
   constructor(@inject("PrismaClient") private prisma: PrismaClient) {}
 
   async getAllClubs(): Promise<Club[]> {
-    return this.prisma.club.findMany();
+    const clubs = await this.prisma.club.findMany({
+      include: { league: true },
+    });
+
+    return clubs.map(toClubDto);
   }
 
   async getClubById(clubId: number): Promise<Club | undefined> {
-    const club = await this.prisma.club.findUnique({ where: { id: clubId } });
+    const club = await this.prisma.club.findUnique({
+      where: { id: clubId },
+      include: { league: true },
+    });
 
-    return club ?? undefined;
+    return club ? toClubDto(club) : undefined;
   }
 
   async selectClub(clubId: number): Promise<Club | null> {
@@ -39,6 +57,8 @@ export class PrismaClubService implements ClubService {
   }
 
   async getClubPlayers(clubId: number): Promise<Player[]> {
-    return this.prisma.player.findMany({ where: { clubId } });
+    return this.prisma.player.findMany({
+      where: { clubId, isActive: true },
+    });
   }
 }

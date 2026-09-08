@@ -2,7 +2,7 @@ export interface Club {
   id: number;
   name: string;
   league: string;
-  stadium: string;
+  stadium: string | null;
 }
 
 export interface Player {
