@@ -17,14 +17,20 @@ model League {
   name                String
   footballDataId      Int    @unique
   apiFootballLeagueId Int?   @unique
+  clubs               Club[]
 }
 
 model Club {
-  id      Int      @id @default(autoincrement())
-  name    String
-  league  String
-  stadium String
-  players Player[]
+  id                Int       @id @default(autoincrement())
+  name              String
+  stadium           String?
+  leagueId          Int
+  league            League    @relation(fields: [leagueId], references: [id])
+  footballDataId    Int       @unique
+  apiFootballId     Int?      @unique
+  isActive          Boolean   @default(true)
+  squadLastSyncedAt DateTime?
+  players           Player[]
 }
 
 model Player {
