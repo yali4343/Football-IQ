@@ -1,11 +1,11 @@
 import { inject, injectable } from "tsyringe";
-import type { PrismaClient } from "../generated/prisma/client.js";
+import type { PrismaClient } from "../../generated/prisma/client.js";
 import type {
   ApiFootballClient,
   ApiFootballSquadPlayer,
   ApiFootballTeam,
-} from "../integrations/apiFootball/ApiFootballClient.js";
-import type { FootballDataClient } from "../integrations/footballData/FootballDataClient.js";
+} from "../../integrations/apiFootball/ApiFootballClient.js";
+import type { FootballDataClient } from "../../integrations/footballData/FootballDataClient.js";
 import type {
   FailedClub,
   FootballSyncService,

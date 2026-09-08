@@ -5,5 +5,5 @@ export type {
   LeagueMembershipSummary,
   SyncOptions,
   SyncSummary,
-} from "./FootballSyncService.js";
-export { PrismaFootballSyncService } from "./PrismaFootballSyncService.js";
+} from "./football-sync/FootballSyncService.js";
+export { PrismaFootballSyncService } from "./football-sync/PrismaFootballSyncService.js";

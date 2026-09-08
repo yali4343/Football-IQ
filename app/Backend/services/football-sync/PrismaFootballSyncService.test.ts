@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import type { PrismaClient } from "../generated/prisma/client.js";
-import type { ApiFootballClient } from "../integrations/apiFootball/ApiFootballClient.js";
+import type { PrismaClient } from "../../generated/prisma/client.js";
+import type { ApiFootballClient } from "../../integrations/apiFootball/ApiFootballClient.js";
 import type {
   FootballDataClient,
   FootballDataTeam,
-} from "../integrations/footballData/FootballDataClient.js";
+} from "../../integrations/footballData/FootballDataClient.js";
 import { PrismaFootballSyncService } from "./PrismaFootballSyncService.js";
 
 // These fixtures leave apiFootballLeagueId null: this test file covers
