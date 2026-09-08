@@ -14,7 +14,7 @@ function DashboardStatusScreen({ busy = false, children }) {
     <main className="dashboard-shell" aria-busy={busy || undefined}>
       <div className="dashboard-frame">
         <p className="eyebrow">Matchday dashboard</p>
-        <h1 className="font-display text-5xl leading-none text-ink sm:text-7xl">
+        <h1 className="font-display text-5xl leading-none text-ink md:text-6xl lg:text-7xl">
           {dashboardTitle}
         </h1>
         {children}
@@ -103,7 +103,7 @@ function App() {
               <div>
                 <h2
                   id="selected-club-heading"
-                  className="font-display max-w-3xl text-6xl leading-[0.86] text-(--club-ink) sm:text-8xl"
+                  className="font-display max-w-3xl text-6xl leading-[0.86] text-(--club-ink) md:text-7xl lg:text-8xl"
                 >
                   {selectedClub?.name ?? "Choose your club"}
                 </h2>
