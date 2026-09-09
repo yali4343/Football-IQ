@@ -16,6 +16,9 @@ export interface LeagueMembershipSummary {
   clubsSkippedFresh: number;
   clubsSkippedQuota: number;
   failedClubs: FailedClub[];
+  profilesUpdated: number;
+  profilesSkippedQuota: number;
+  profilesFailed: number;
   failed: boolean;
   error?: string;
 }

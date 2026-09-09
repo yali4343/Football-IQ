@@ -146,6 +146,9 @@ export class MembershipSyncer {
       clubsSkippedFresh: 0,
       clubsSkippedQuota: 0,
       failedClubs: [],
+      profilesUpdated: 0,
+      profilesSkippedQuota: 0,
+      profilesFailed: 0,
       failed: false,
     };
   }
@@ -285,6 +288,9 @@ export class MembershipSyncer {
       clubsSkippedFresh: 0,
       clubsSkippedQuota: 0,
       failedClubs: [],
+      profilesUpdated: 0,
+      profilesSkippedQuota: 0,
+      profilesFailed: 0,
       failed: true,
       error: error instanceof Error ? error.message : String(error),
     };
