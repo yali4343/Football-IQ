@@ -208,11 +208,6 @@ p {
   .dashboard-shell {
     padding: 0.75rem;
   }
-
-  .dashboard-frame header {
-    align-items: stretch;
-    flex-direction: column;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

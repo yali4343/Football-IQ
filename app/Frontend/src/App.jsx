@@ -12,17 +12,10 @@ import { PlayerProfileModal } from "./components/PlayerProfileModal.jsx";
 import { ClubAnthemPlayer } from "./components/ClubAnthemPlayer.jsx";
 import { getClubAnthemVideoId } from "./clubAnthems.js";
 
-const dashboardTitle = "Personalized Football Team Dashboard";
-
 function DashboardStatusScreen({ busy = false, children }) {
   return (
     <main className="dashboard-shell" aria-busy={busy || undefined}>
-      <div className="dashboard-frame">
-        <h1 className="mt-8 font-display text-5xl leading-none text-ink md:text-6xl lg:text-7xl">
-          {dashboardTitle}
-        </h1>
-        <div className="mt-6">{children}</div>
-      </div>
+      <div className="dashboard-frame">{children}</div>
     </main>
   );
 }
@@ -87,15 +80,7 @@ function App() {
   return (
     <main className="dashboard-shell" style={dashboardStyle}>
       <div className="dashboard-frame">
-        <header className="flex items-start justify-between gap-6 border-b border-border-strong pb-6">
-          <div>
-            <h1 className="font-display mt-1 text-lg leading-none text-ink sm:text-xl">
-              {dashboardTitle}
-            </h1>
-          </div>
-        </header>
-
-        <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
           <section
             className="selected-stage"
             aria-labelledby="selected-club-heading"

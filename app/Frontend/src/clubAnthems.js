@@ -8,7 +8,7 @@ const SERIE_A_ANTHEM_VIDEO_IDS = {
   50: "-TvkjYlJ3J4", // ACF Fiorentina
   51: "kQwMpd5Cb54", // AS Roma
   52: "ihlECJZqXvQ", // Atalanta BC
-  53: "PJDpzSg4eMs", // Bologna FC 1909
+  53: "buAbSGS4Nsc", // Bologna FC 1909
   54: "28D-o8uncSE", // Cagliari Calcio
   55: "wmBVWXZFWwU", // Genoa CFC
   56: "7YnXim9Gszc", // FC Internazionale Milano
@@ -21,7 +21,7 @@ const SERIE_A_ANTHEM_VIDEO_IDS = {
   63: "M_2_z6Fj9jk", // Frosinone Calcio
   64: "0WME97JYByE", // US Sassuolo Calcio
   65: "eFvpZj25JkQ", // Torino FC
-  66: "L1EcoolRZyQ", // US Lecce
+  66: "fMKTE_DJO7o", // US Lecce
   67: "5lsbASxdJnM", // AC Monza
   68: "62L-NA4t6C4", // Como 1907
 };
