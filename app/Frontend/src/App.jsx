@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useClubsQuery } from "./hooks/useClubsQuery.js";
 import { useClubSelection } from "./hooks/useClubSelection.js";
 import { useClubPlayersQuery } from "./hooks/useClubPlayersQuery.js";
@@ -7,6 +8,7 @@ import { PreviewBlock } from "./components/PreviewBlock.jsx";
 import { Spinner } from "./components/Spinner.jsx";
 import { PositionGroup } from "./components/PositionGroup.jsx";
 import { ClubCrest } from "./components/ClubCrest.jsx";
+import { PlayerProfileModal } from "./components/PlayerProfileModal.jsx";
 
 const dashboardTitle = "Personalized Football Team Dashboard";
 
@@ -40,6 +42,8 @@ function App() {
   const { players, isLoading: isLoadingPlayers } = useClubPlayersQuery(
     selectedClub?.id,
   );
+
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const dashboardStyle = useClubVisualTheme(selectedClub);
 
@@ -247,18 +251,22 @@ function App() {
                 <PositionGroup
                   title="Goalkeepers"
                   players={players.filter((p) => p.position === "Goalkeeper")}
+                  onSelectPlayer={setSelectedPlayer}
                 />
                 <PositionGroup
                   title="Defenders"
                   players={players.filter((p) => p.position === "Defender")}
+                  onSelectPlayer={setSelectedPlayer}
                 />
                 <PositionGroup
                   title="Midfielders"
                   players={players.filter((p) => p.position === "Midfielder")}
+                  onSelectPlayer={setSelectedPlayer}
                 />
                 <PositionGroup
                   title="Attackers"
                   players={players.filter((p) => p.position === "Attacker")}
+                  onSelectPlayer={setSelectedPlayer}
                 />
               </div>
             ))}
@@ -281,6 +289,11 @@ function App() {
           </div>
         </section>
       </div>
+
+      <PlayerProfileModal
+        player={selectedPlayer}
+        onClose={() => setSelectedPlayer(null)}
+      />
     </main>
   );
 }

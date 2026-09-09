@@ -1,8 +1,12 @@
 import { PlayerAvatar } from "./PlayerAvatar.jsx";
 
-export function PlayerCard({ player }) {
+export function PlayerCard({ player, onSelect }) {
   return (
-    <div className="flex items-center gap-3 rounded-panel border border-border bg-surface p-3">
+    <button
+      type="button"
+      onClick={() => onSelect(player)}
+      className="flex items-center gap-3 rounded-panel border border-border bg-surface p-3 text-left transition hover:border-border-strong"
+    >
       <PlayerAvatar player={player} />
 
       <div className="min-w-0">
@@ -11,6 +15,6 @@ export function PlayerCard({ player }) {
           <p className="text-xs text-subtle">Age: {player.age}</p>
         )}
       </div>
-    </div>
+    </button>
   );
 }
