@@ -6,7 +6,7 @@ export function PlayerCard({ player }) {
   const showPhoto = Boolean(player.photoUrl) && !hasPhotoError;
 
   return (
-    <div className="flex items-center gap-3 rounded-[var(--radius-panel)] border border-border bg-surface p-3">
+    <div className="flex items-center gap-3 rounded-panel border border-border bg-surface p-3">
       {showPhoto ? (
         <img
           src={player.photoUrl}
