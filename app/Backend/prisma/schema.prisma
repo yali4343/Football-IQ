@@ -58,6 +58,7 @@ model Club {
   name              String
   shortName         String?
   stadium           String?
+  stadiumImageUrl   String?
   crest             String?
   address           String?
   website           String?
