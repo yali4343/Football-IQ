@@ -6,7 +6,7 @@ import { getClubInitials } from "./clubVisuals.js";
 import { StatusMessage } from "./components/StatusMessage.jsx";
 import { PreviewBlock } from "./components/PreviewBlock.jsx";
 import { Spinner } from "./components/Spinner.jsx";
-import { PlayerCard } from "./components/PlayerCard.jsx";
+import { PositionGroup } from "./components/PositionGroup.jsx";
 
 const dashboardTitle = "Personalized Football Team Dashboard";
 
@@ -235,10 +235,23 @@ function App() {
                 Loading squad...
               </p>
             ) : (
-              <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {players.map((player) => (
-                  <PlayerCard key={player.id} player={player} />
-                ))}
+              <div className="mt-3 space-y-4">
+                <PositionGroup
+                  title="Goalkeepers"
+                  players={players.filter((p) => p.position === "Goalkeeper")}
+                />
+                <PositionGroup
+                  title="Defenders"
+                  players={players.filter((p) => p.position === "Defender")}
+                />
+                <PositionGroup
+                  title="Midfielders"
+                  players={players.filter((p) => p.position === "Midfielder")}
+                />
+                <PositionGroup
+                  title="Attackers"
+                  players={players.filter((p) => p.position === "Attacker")}
+                />
               </div>
             ))}
         </PreviewBlock>
