@@ -71,6 +71,7 @@ function createMockApiFootballClient(options: {
     getLeagueDirectory: vi.fn().mockResolvedValue(options.directory ?? []),
     searchTeam: vi.fn().mockResolvedValue([]),
     getSquad: vi.fn().mockResolvedValue([]),
+    getPlayerProfile: vi.fn().mockResolvedValue(null),
   };
 }
 
@@ -116,6 +117,7 @@ describe("PrismaFootballSyncService (orchestration)", () => {
       getLeagueDirectory,
       searchTeam: vi.fn(),
       getSquad,
+      getPlayerProfile: vi.fn(),
     };
 
     const summary = await service(

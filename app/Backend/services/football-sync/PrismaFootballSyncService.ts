@@ -11,6 +11,7 @@ import type {
 } from "./FootballSyncService.js";
 import { MembershipSyncer } from "./MembershipSyncer.js";
 import { slugifyLeagueName } from "./nameMatching.js";
+import { PlayerProfileSyncer } from "./PlayerProfileSyncer.js";
 import { SquadSyncer } from "./SquadSyncer.js";
 
 @injectable()
@@ -18,6 +19,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
   private membershipSyncer: MembershipSyncer;
   private clubMapper: ClubMapper;
   private squadSyncer: SquadSyncer;
+  private playerProfileSyncer: PlayerProfileSyncer;
 
   constructor(
     @inject("PrismaClient") private prisma: PrismaClient,
@@ -27,6 +29,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
     this.membershipSyncer = new MembershipSyncer(prisma, footballDataClient);
     this.clubMapper = new ClubMapper(prisma, apiFootballClient);
     this.squadSyncer = new SquadSyncer(prisma, apiFootballClient);
+    this.playerProfileSyncer = new PlayerProfileSyncer(prisma, apiFootballClient);
   }
 
   async run(options: SyncOptions = {}): Promise<SyncSummary> {
@@ -65,6 +68,17 @@ export class PrismaFootballSyncService implements FootballSyncService {
         membership.clubsSkippedFresh = squads.clubsSkippedFresh;
         membership.clubsSkippedQuota = squads.clubsSkippedQuota;
         membership.failedClubs = squads.failedClubs;
+
+        if (!dryRun) {
+          const profiles = await this.playerProfileSyncer.syncLeague(
+            league,
+            force,
+            options.clubSlug,
+          );
+          membership.profilesUpdated = profiles.profilesUpdated;
+          membership.profilesSkippedQuota = profiles.profilesSkippedQuota;
+          membership.profilesFailed = profiles.profilesFailed;
+        }
       }
 
       summaries.push(membership);

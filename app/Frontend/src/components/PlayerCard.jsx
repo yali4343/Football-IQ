@@ -1,31 +1,13 @@
-import { useState } from "react";
-import { getClubInitials } from "../clubVisuals.js";
+import { PlayerAvatar } from "./PlayerAvatar.jsx";
 
-export function PlayerCard({ player }) {
-  const [hasPhotoError, setHasPhotoError] = useState(false);
-  const showPhoto = Boolean(player.photoUrl) && !hasPhotoError;
-
+export function PlayerCard({ player, onSelect }) {
   return (
-    <div className="flex items-center gap-3 rounded-panel border border-border bg-surface p-3">
-      {showPhoto ? (
-        <img
-          src={player.photoUrl}
-          alt={player.name}
-          className="h-16 w-16 shrink-0 rounded-full object-cover"
-          onError={() => setHasPhotoError(true)}
-        />
-      ) : (
-        <div
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-lg font-extrabold"
-          style={{
-            backgroundColor: "var(--club-secondary)",
-            color: "var(--club-ink)",
-          }}
-          aria-hidden="true"
-        >
-          {getClubInitials(player.name)}
-        </div>
-      )}
+    <button
+      type="button"
+      onClick={() => onSelect(player)}
+      className="flex items-center gap-3 rounded-panel border border-border bg-surface p-3 text-left transition hover:border-border-strong"
+    >
+      <PlayerAvatar player={player} />
 
       <div className="min-w-0">
         <p className="truncate font-semibold text-body">{player.name}</p>
@@ -33,6 +15,6 @@ export function PlayerCard({ player }) {
           <p className="text-xs text-subtle">Age: {player.age}</p>
         )}
       </div>
-    </div>
+    </button>
   );
 }

@@ -79,17 +79,24 @@ model Club {
 }
 
 model Player {
-  id            Int     @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   name          String
+  firstName     String?
+  lastName      String?
   position      String
   age           Int?
   number        Int?
   nationality   String?
+  dateOfBirth   DateTime?
+  birthPlace    String?
+  birthCountry  String?
+  height        String?
+  weight        String?
   photoUrl      String?
-  externalApiId Int     @unique
-  isActive      Boolean @default(true)
+  externalApiId Int       @unique
+  isActive      Boolean   @default(true)
   clubId        Int
-  club          Club    @relation(fields: [clubId], references: [id])
+  club          Club      @relation(fields: [clubId], references: [id])
 
   @@index([clubId])
 }

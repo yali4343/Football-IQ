@@ -75,6 +75,7 @@ function apiFootballClient(
       }
       return Promise.resolve(result ?? []);
     }),
+    getPlayerProfile: () => Promise.reject(new Error("not used")),
   };
 }
 

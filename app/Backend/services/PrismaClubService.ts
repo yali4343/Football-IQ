@@ -1,10 +1,34 @@
 import { inject, injectable } from "tsyringe";
-import type { Prisma, PrismaClient } from "../generated/prisma/client.js";
+import type {
+  Player as PrismaPlayer,
+  Prisma,
+  PrismaClient,
+} from "../generated/prisma/client.js";
 import type { Club, ClubService, Player } from "./ClubService.js";
 
 type ClubWithLeague = Prisma.ClubGetPayload<{
   include: { league: true; area: true; coach: true };
 }>;
+
+function toPlayerDto(player: PrismaPlayer): Player {
+  return {
+    id: player.id,
+    name: player.name,
+    firstName: player.firstName,
+    lastName: player.lastName,
+    position: player.position,
+    age: player.age,
+    number: player.number,
+    nationality: player.nationality,
+    dateOfBirth: player.dateOfBirth?.toISOString() ?? null,
+    birthPlace: player.birthPlace,
+    birthCountry: player.birthCountry,
+    height: player.height,
+    weight: player.weight,
+    photoUrl: player.photoUrl,
+    clubId: player.clubId,
+  };
+}
 
 function toClubDto(club: ClubWithLeague): Club {
   return {
@@ -72,8 +96,10 @@ export class PrismaClubService implements ClubService {
   }
 
   async getClubPlayers(clubId: number): Promise<Player[]> {
-    return this.prisma.player.findMany({
+    const players = await this.prisma.player.findMany({
       where: { clubId, isActive: true },
     });
+
+    return players.map(toPlayerDto);
   }
 }
