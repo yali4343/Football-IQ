@@ -7,7 +7,6 @@ import { PreviewBlock } from "./components/PreviewBlock.jsx";
 import { Spinner } from "./components/Spinner.jsx";
 import { PositionGroup } from "./components/PositionGroup.jsx";
 import { ClubCrest } from "./components/ClubCrest.jsx";
-import { Coach } from "./components/Coach.jsx";
 
 const dashboardTitle = "Personalized Football Team Dashboard";
 
@@ -119,6 +118,9 @@ function App() {
                     {selectedClub.clubColors && (
                       <span>Colors: {selectedClub.clubColors}</span>
                     )}
+                    {selectedClub.coach?.name && (
+                      <span>Coach: {selectedClub.coach.name}</span>
+                    )}
                   </div>
                 ) : (
                   <p className="mt-6 max-w-md text-sm leading-6 text-muted">
@@ -226,17 +228,6 @@ function App() {
             )}
           </section>
         </div>
-
-        <PreviewBlock
-          title="Coach"
-          description={
-            selectedClub
-              ? `${selectedClub.name}'s current head coach:`
-              : "Coach information will appear here after you select a club."
-          }
-        >
-          {selectedClub && <Coach coach={selectedClub.coach} />}
-        </PreviewBlock>
 
         <PreviewBlock
           title="Squad"
