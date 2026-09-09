@@ -10,7 +10,7 @@ export function ClubCrest({ club }) {
       <img
         src={club.crest}
         alt={club.name}
-        className="h-[7rem] w-[7rem] object-contain"
+        className="h-28 w-28 object-contain"
         onError={() => setHasError(true)}
       />
     );

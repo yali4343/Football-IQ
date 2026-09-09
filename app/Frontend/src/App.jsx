@@ -118,6 +118,9 @@ function App() {
                     {selectedClub.clubColors && (
                       <span>Colors: {selectedClub.clubColors}</span>
                     )}
+                    {selectedClub.coach?.name && (
+                      <span>Coach: {selectedClub.coach.name}</span>
+                    )}
                   </div>
                 ) : (
                   <p className="mt-6 max-w-md text-sm leading-6 text-muted">
