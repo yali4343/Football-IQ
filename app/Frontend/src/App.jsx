@@ -275,23 +275,6 @@ function App() {
               </div>
             ))}
         </PreviewBlock>
-
-        <section className="mt-16" aria-labelledby="preview-heading">
-          <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
-            <PreviewBlock
-              title="Upcoming Matches"
-              description="Fixture information will appear here when match data is available."
-              className="min-h-56"
-              disabled={!selectedClub}
-            />
-            <PreviewBlock
-              title="League Position"
-              description="Standings data is coming soon."
-              className="min-h-56"
-              disabled={!selectedClub}
-            />
-          </div>
-        </section>
       </div>
 
       <PlayerProfileModal
