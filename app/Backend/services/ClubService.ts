@@ -3,6 +3,10 @@ export interface Club {
   name: string;
   league: string;
   stadium: string | null;
+  crest: string | null;
+  founded: number | null;
+  clubColors: string | null;
+  country: string | null;
 }
 
 export interface Player {
