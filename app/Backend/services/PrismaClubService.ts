@@ -36,6 +36,7 @@ function toClubDto(club: ClubWithLeague): Club {
     name: club.name,
     league: club.league.name,
     stadium: club.stadium,
+    stadiumImageUrl: club.stadiumImageUrl,
     crest: club.crest,
     founded: club.founded,
     clubColors: club.clubColors,

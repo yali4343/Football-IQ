@@ -2,6 +2,7 @@ import { inject, injectable } from "tsyringe";
 import type { PrismaClient } from "../../generated/prisma/client.js";
 import type { ApiFootballClient } from "../../integrations/apiFootball/ApiFootballClient.js";
 import type { FootballDataClient } from "../../integrations/footballData/FootballDataClient.js";
+import type { TheSportsDbClient } from "../../integrations/theSportsDb/TheSportsDbClient.js";
 import { ClubMapper } from "./ClubMapper.js";
 import type {
   FootballSyncService,
@@ -13,11 +14,13 @@ import { MembershipSyncer } from "./MembershipSyncer.js";
 import { slugifyLeagueName } from "./nameMatching.js";
 import { PlayerProfileSyncer } from "./PlayerProfileSyncer.js";
 import { SquadSyncer } from "./SquadSyncer.js";
+import { StadiumImageSyncer } from "./StadiumImageSyncer.js";
 
 @injectable()
 export class PrismaFootballSyncService implements FootballSyncService {
   private membershipSyncer: MembershipSyncer;
   private clubMapper: ClubMapper;
+  private stadiumImageSyncer: StadiumImageSyncer;
   private squadSyncer: SquadSyncer;
   private playerProfileSyncer: PlayerProfileSyncer;
 
@@ -25,9 +28,11 @@ export class PrismaFootballSyncService implements FootballSyncService {
     @inject("PrismaClient") private prisma: PrismaClient,
     @inject("FootballDataClient") private footballDataClient: FootballDataClient,
     @inject("ApiFootballClient") private apiFootballClient: ApiFootballClient,
+    @inject("TheSportsDbClient") private theSportsDbClient: TheSportsDbClient,
   ) {
     this.membershipSyncer = new MembershipSyncer(prisma, footballDataClient);
     this.clubMapper = new ClubMapper(prisma, apiFootballClient);
+    this.stadiumImageSyncer = new StadiumImageSyncer(prisma, theSportsDbClient);
     this.squadSyncer = new SquadSyncer(prisma, apiFootballClient);
     this.playerProfileSyncer = new PlayerProfileSyncer(prisma, apiFootballClient);
   }
@@ -55,6 +60,18 @@ export class PrismaFootballSyncService implements FootballSyncService {
         );
         membership.clubsMapped = mapping.mapped;
         membership.unmappedClubs = mapping.unmapped;
+
+        const stadiumImages = await this.stadiumImageSyncer.syncLeague(
+          league,
+          force,
+          dryRun,
+          options.clubSlug,
+        );
+        membership.stadiumImagesUpdated = stadiumImages.updated;
+        membership.clubsWithoutStadiumImage =
+          stadiumImages.clubsWithoutStadiumImage;
+        membership.stadiumImagesSkippedRateLimited =
+          stadiumImages.skippedRateLimited;
 
         const squads = await this.squadSyncer.syncLeague(
           league,
