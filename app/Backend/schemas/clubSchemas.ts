@@ -10,6 +10,17 @@ const clubSelectionBodySchema = z.object({
 
 // Plain JSON-Schema (not Zod) — these describe route *responses* for
 // @fastify/swagger, matching the DTOs actually returned by ClubService.
+const clubCoachResponseSchema = {
+  type: ["object", "null"],
+  properties: {
+    name: { type: ["string", "null"] },
+    dateOfBirth: { type: ["string", "null"] },
+    nationality: { type: ["string", "null"] },
+    contractStart: { type: ["string", "null"] },
+    contractUntil: { type: ["string", "null"] },
+  },
+};
+
 const clubResponseSchema = {
   type: "object",
   properties: {
@@ -21,6 +32,7 @@ const clubResponseSchema = {
     founded: { type: ["integer", "null"] },
     clubColors: { type: ["string", "null"] },
     country: { type: ["string", "null"] },
+    coach: clubCoachResponseSchema,
   },
   required: [
     "id",
@@ -31,6 +43,7 @@ const clubResponseSchema = {
     "founded",
     "clubColors",
     "country",
+    "coach",
   ],
 };
 

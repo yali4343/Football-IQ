@@ -1,3 +1,11 @@
+export interface ClubCoach {
+  name: string | null;
+  dateOfBirth: string | null;
+  nationality: string | null;
+  contractStart: string | null;
+  contractUntil: string | null;
+}
+
 export interface Club {
   id: number;
   name: string;
@@ -7,6 +15,7 @@ export interface Club {
   founded: number | null;
   clubColors: string | null;
   country: string | null;
+  coach: ClubCoach | null;
 }
 
 export interface Player {
