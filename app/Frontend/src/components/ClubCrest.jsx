@@ -5,18 +5,20 @@ export function ClubCrest({ club }) {
   const [hasError, setHasError] = useState(false);
   const showCrest = Boolean(club.crest) && !hasError;
 
+  if (showCrest) {
+    return (
+      <img
+        src={club.crest}
+        alt={club.name}
+        className="h-[7rem] w-[7rem] object-contain"
+        onError={() => setHasError(true)}
+      />
+    );
+  }
+
   return (
     <div className="club-mark" aria-hidden="true">
-      {showCrest ? (
-        <img
-          src={club.crest}
-          alt=""
-          className="h-full w-full object-contain p-2"
-          onError={() => setHasError(true)}
-        />
-      ) : (
-        getClubInitials(club.name)
-      )}
+      {getClubInitials(club.name)}
     </div>
   );
 }
