@@ -80,6 +80,7 @@ function createMockTheSportsDbClient(): TheSportsDbClient {
   return {
     isRateLimited: () => false,
     findVenueImageUrl: vi.fn().mockResolvedValue(null),
+    findVenueImageUrlByTeamName: vi.fn().mockResolvedValue(null),
   };
 }
 

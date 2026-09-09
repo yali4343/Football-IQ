@@ -10,8 +10,11 @@ interface StadiumImageClub {
 }
 
 // Enriches each club with a stadium photo from TheSportsDB, matched by the
-// existing stadium name. Mirrors ClubMapper's role for a third provider:
-// skip clubs that already have an image unless --force, and never fail the
+// existing stadium name, falling back to a team-name lookup when the venue
+// name itself doesn't match (outdated names, missing sponsor prefixes —
+// verified live: "Camp Nou" misses directly but resolves via Barcelona's
+// own team record). Mirrors ClubMapper's role for a third provider: skip
+// clubs that already have an image unless --force, and never fail the
 // whole sync on a missing venue/image or a provider error — a lookup that
 // comes back empty or throws is recorded, not raised further.
 export class StadiumImageSyncer {
@@ -83,8 +86,24 @@ export class StadiumImageSyncer {
       return null;
     }
 
+    const byVenueName = await this.tryLookup(() =>
+      this.theSportsDbClient.findVenueImageUrl(club.stadium as string),
+    );
+
+    if (byVenueName || this.theSportsDbClient.isRateLimited()) {
+      return byVenueName;
+    }
+
+    return this.tryLookup(() =>
+      this.theSportsDbClient.findVenueImageUrlByTeamName(club.name),
+    );
+  }
+
+  private async tryLookup(
+    lookup: () => Promise<string | null>,
+  ): Promise<string | null> {
     try {
-      return await this.theSportsDbClient.findVenueImageUrl(club.stadium);
+      return await lookup();
     } catch {
       return null;
     }

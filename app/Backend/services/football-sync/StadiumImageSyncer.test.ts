@@ -39,6 +39,7 @@ function syncer(
 function theSportsDbClient(
   imageByVenue: Record<string, string | null | Error>,
   isRateLimited: () => boolean = () => false,
+  imageByTeamName: Record<string, string | null | Error> = {},
 ): TheSportsDbClient {
   return {
     isRateLimited,
@@ -49,6 +50,15 @@ function theSportsDbClient(
       }
       return Promise.resolve(result ?? null);
     }),
+    findVenueImageUrlByTeamName: vi
+      .fn()
+      .mockImplementation((teamName: string) => {
+        const result = imageByTeamName[teamName];
+        if (result instanceof Error) {
+          return Promise.reject(result);
+        }
+        return Promise.resolve(result ?? null);
+      }),
   };
 }
 
@@ -126,6 +136,41 @@ describe("StadiumImageSyncer", () => {
     });
   });
 
+  it("falls back to a team-name lookup when the venue name doesn't match", async () => {
+    const barca: ClubFixture = {
+      id: 20,
+      name: "FC Barcelona",
+      stadium: "Camp Nou",
+    };
+    const prisma = createMockPrisma([barca]);
+    const client = theSportsDbClient(
+      { "Camp Nou": null },
+      () => false,
+      { "FC Barcelona": "https://example.com/spotify-camp-nou.jpg" },
+    );
+
+    const result = await syncer(prisma, client).syncLeague(
+      league,
+      false,
+      false,
+      undefined,
+    );
+
+    expect(client.findVenueImageUrl).toHaveBeenCalledWith("Camp Nou");
+    expect(client.findVenueImageUrlByTeamName).toHaveBeenCalledWith(
+      "FC Barcelona",
+    );
+    expect(prisma.club.update).toHaveBeenCalledWith({
+      where: { id: 20 },
+      data: { stadiumImageUrl: "https://example.com/spotify-camp-nou.jpg" },
+    });
+    expect(result).toEqual({
+      updated: 1,
+      clubsWithoutStadiumImage: [],
+      skippedRateLimited: 0,
+    });
+  });
+
   it("does not write when dryRun is true", async () => {
     const prisma = createMockPrisma([club]);
     const client = theSportsDbClient({
@@ -177,6 +222,7 @@ describe("StadiumImageSyncer", () => {
     );
 
     expect(client.findVenueImageUrl).toHaveBeenCalledTimes(1);
+    expect(client.findVenueImageUrlByTeamName).not.toHaveBeenCalled();
     expect(result).toEqual({
       updated: 0,
       clubsWithoutStadiumImage: [],
