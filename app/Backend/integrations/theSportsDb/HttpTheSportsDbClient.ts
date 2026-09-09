@@ -23,7 +23,7 @@ interface TheSportsDbVenuesResponse {
 }
 
 interface TheSportsDbTeamsResponse {
-  teams: Array<{ idVenue: string | null }> | null;
+  teams: Array<{ idVenue: string | null; strSport: string | null }> | null;
 }
 
 @injectable()
@@ -52,7 +52,14 @@ export class HttpTheSportsDbClient implements TheSportsDbClient {
     const teamsBody = await this.request<TheSportsDbTeamsResponse>(
       `searchteams.php?t=${encodeURIComponent(teamName)}`,
     );
-    const venueId = teamsBody.teams?.[0]?.idVenue;
+    const teams = teamsBody.teams ?? [];
+    // The search isn't sport-scoped — verified live: "FC Schalke 04" also
+    // matches an esports team, "FC Barcelona" a rugby club, both with no
+    // venue. Prefer a soccer match; fall back to the first result if none
+    // is explicitly marked as one.
+    const team =
+      teams.find((candidate) => candidate.strSport === "Soccer") ?? teams[0];
+    const venueId = team?.idVenue;
 
     if (!venueId) {
       return null;

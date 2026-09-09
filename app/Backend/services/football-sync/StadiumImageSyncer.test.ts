@@ -146,7 +146,7 @@ describe("StadiumImageSyncer", () => {
     const client = theSportsDbClient(
       { "Camp Nou": null },
       () => false,
-      { "FC Barcelona": "https://example.com/spotify-camp-nou.jpg" },
+      { barcelona: "https://example.com/spotify-camp-nou.jpg" },
     );
 
     const result = await syncer(prisma, client).syncLeague(
@@ -157,8 +157,12 @@ describe("StadiumImageSyncer", () => {
     );
 
     expect(client.findVenueImageUrl).toHaveBeenCalledWith("Camp Nou");
+    // The club-type descriptor ("FC") is stripped before the team-name
+    // search — verified live: TheSportsDB's search isn't sport-scoped, and
+    // "FC Barcelona" collides with an unrelated rugby team of that exact
+    // name, while "barcelona" correctly matches the football club.
     expect(client.findVenueImageUrlByTeamName).toHaveBeenCalledWith(
-      "FC Barcelona",
+      "barcelona",
     );
     expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: 20 },

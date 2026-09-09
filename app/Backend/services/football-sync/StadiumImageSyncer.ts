@@ -1,6 +1,6 @@
 import type { PrismaClient } from "../../generated/prisma/client.js";
 import type { TheSportsDbClient } from "../../integrations/theSportsDb/TheSportsDbClient.js";
-import { slugifyLeagueName } from "./nameMatching.js";
+import { normalizeClubName, slugifyLeagueName } from "./nameMatching.js";
 import type { SyncTargetLeague } from "./types.js";
 
 interface StadiumImageClub {
@@ -94,8 +94,14 @@ export class StadiumImageSyncer {
       return byVenueName;
     }
 
+    // Strip club-type descriptors (FC/AFC/CF/etc.) before searching by
+    // name — verified live: "FC Barcelona"/"Hull City AFC"/"FC Schalke 04"
+    // all miss or match the wrong (non-soccer) team on TheSportsDB, while
+    // the normalized "Barcelona"/"Hull City"/"Schalke" match correctly.
     return this.tryLookup(() =>
-      this.theSportsDbClient.findVenueImageUrlByTeamName(club.name),
+      this.theSportsDbClient.findVenueImageUrlByTeamName(
+        normalizeClubName(club.name),
+      ),
     );
   }
 
