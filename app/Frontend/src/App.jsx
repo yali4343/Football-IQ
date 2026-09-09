@@ -109,6 +109,15 @@ function App() {
                   <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
                     <span>League: {selectedClub.league}</span>
                     <span>Stadium: {selectedClub.stadium}</span>
+                    {selectedClub.founded != null && (
+                      <span>Founded: {selectedClub.founded}</span>
+                    )}
+                    {selectedClub.country && (
+                      <span>Country: {selectedClub.country}</span>
+                    )}
+                    {selectedClub.clubColors && (
+                      <span>Colors: {selectedClub.clubColors}</span>
+                    )}
                   </div>
                 ) : (
                   <p className="mt-6 max-w-md text-sm leading-6 text-muted">
