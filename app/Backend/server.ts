@@ -13,7 +13,7 @@ const fastify = Fastify({
     transport: {
       target: "pino-pretty",
       options: {
-        translateTime: "HH:MM:ss",
+        translateTime: "SYS:HH:MM:ss",
         ignore: "pid,hostname",
       },
     },
@@ -82,14 +82,6 @@ await fastify.register(swaggerUi, {
 fastify.register(clubRoutes, {
   prefix: "/clubs",
   clubService,
-});
-
-fastify.get("/search", async (request) => {
-  const query = request.query as Record<string, string>;
-  const page = query.page ?? "1";
-  const limit = query.limit ?? "10";
-
-  return { page, limit };
 });
 
 const port = process.env.PORT || 3000;
