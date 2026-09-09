@@ -129,8 +129,8 @@ function App() {
                 </h2>
                 {selectedClub ? (
                   <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
-                    <span>{selectedClub.league}</span>
-                    <span>{selectedClub.stadium}</span>
+                    <span>League: {selectedClub.league}</span>
+                    <span>Stadium: {selectedClub.stadium}</span>
                   </div>
                 ) : (
                   <p className="mt-6 max-w-md text-sm leading-6 text-muted">
@@ -268,7 +268,7 @@ function App() {
             title="Club Overview"
             description={
               selectedClub
-                ? `${selectedClub.name}'s current squad.`
+                ? `${selectedClub.name}'s current squad:`
                 : "More club information is coming soon. This will include squad details, club history, and more."
             }
             className="mt-5 min-h-40"
