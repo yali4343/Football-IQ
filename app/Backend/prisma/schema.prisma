@@ -20,18 +20,62 @@ model League {
   clubs               Club[]
 }
 
+model Area {
+  id                 Int    @id @default(autoincrement())
+  footballDataAreaId Int    @unique
+  name               String
+  code               String?
+  flag               String?
+  clubs              Club[]
+}
+
+model Competition {
+  id                        Int     @id @default(autoincrement())
+  footballDataCompetitionId Int     @unique
+  name                      String
+  code                      String?
+  type                      String?
+  emblem                    String?
+  clubs                     Club[]
+}
+
+model Coach {
+  id                  Int       @id @default(autoincrement())
+  footballDataCoachId Int       @unique
+  firstName           String?
+  lastName            String?
+  name                String?
+  dateOfBirth         DateTime?
+  nationality         String?
+  contractStart       DateTime?
+  contractUntil       DateTime?
+  clubId              Int       @unique
+  club                Club      @relation(fields: [clubId], references: [id])
+}
+
 model Club {
-  id                Int       @id @default(autoincrement())
+  id                Int           @id @default(autoincrement())
   name              String
+  shortName         String?
   stadium           String?
+  crest             String?
+  address           String?
+  website           String?
+  founded           Int?
+  clubColors        String?
+  lastUpdated       DateTime?
   leagueId          Int
-  league            League    @relation(fields: [leagueId], references: [id])
-  footballDataId    Int       @unique
+  league            League        @relation(fields: [leagueId], references: [id])
+  areaId            Int?
+  area              Area?         @relation(fields: [areaId], references: [id])
+  footballDataId    Int           @unique
   footballDataCode  String?
-  apiFootballId     Int?      @unique
-  isActive          Boolean   @default(true)
+  apiFootballId     Int?          @unique
+  isActive          Boolean       @default(true)
   squadLastSyncedAt DateTime?
   players           Player[]
+  competitions      Competition[]
+  coach             Coach?
 }
 
 model Player {

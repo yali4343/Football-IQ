@@ -2,11 +2,11 @@ import { useClubsQuery } from "./hooks/useClubsQuery.js";
 import { useClubSelection } from "./hooks/useClubSelection.js";
 import { useClubPlayersQuery } from "./hooks/useClubPlayersQuery.js";
 import { useClubVisualTheme } from "./hooks/useClubVisualTheme.js";
-import { getClubInitials } from "./clubVisuals.js";
 import { StatusMessage } from "./components/StatusMessage.jsx";
 import { PreviewBlock } from "./components/PreviewBlock.jsx";
 import { Spinner } from "./components/Spinner.jsx";
 import { PositionGroup } from "./components/PositionGroup.jsx";
+import { ClubCrest } from "./components/ClubCrest.jsx";
 
 const dashboardTitle = "Personalized Football Team Dashboard";
 
@@ -94,9 +94,7 @@ function App() {
                   </p>
                 </div>
                 {selectedClub && (
-                  <div className="club-mark" aria-hidden="true">
-                    {getClubInitials(selectedClub.name)}
-                  </div>
+                  <ClubCrest club={selectedClub} key={selectedClub.id} />
                 )}
               </div>
 
@@ -111,6 +109,15 @@ function App() {
                   <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
                     <span>League: {selectedClub.league}</span>
                     <span>Stadium: {selectedClub.stadium}</span>
+                    {selectedClub.founded != null && (
+                      <span>Founded: {selectedClub.founded}</span>
+                    )}
+                    {selectedClub.country && (
+                      <span>Country: {selectedClub.country}</span>
+                    )}
+                    {selectedClub.clubColors && (
+                      <span>Colors: {selectedClub.clubColors}</span>
+                    )}
                   </div>
                 ) : (
                   <p className="mt-6 max-w-md text-sm leading-6 text-muted">
@@ -221,7 +228,11 @@ function App() {
 
         <PreviewBlock
           title="Squad"
-          description={`${selectedClub.name}'s current squad:`}
+          description={
+            selectedClub
+              ? `${selectedClub.name}'s current squad:`
+              : "More club information is coming soon. This will include squad details, club history, and more."
+          }
         >
           {selectedClub &&
             (isLoadingPlayers ? (

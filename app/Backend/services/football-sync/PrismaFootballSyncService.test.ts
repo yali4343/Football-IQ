@@ -39,10 +39,13 @@ function createMockPrisma() {
     club: {
       findUnique: vi.fn().mockResolvedValue(null),
       findMany: vi.fn().mockResolvedValue([]),
-      create: vi.fn(),
+      create: vi.fn().mockResolvedValue({ id: 5 }),
       update: vi.fn(),
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
+    area: { upsert: vi.fn() },
+    competition: { upsert: vi.fn() },
+    coach: { upsert: vi.fn(), deleteMany: vi.fn() },
   };
 }
 
@@ -136,7 +139,24 @@ describe("PrismaFootballSyncService (orchestration)", () => {
     prisma.league.findMany.mockResolvedValue([premierLeague]);
     // Membership: one new club created.
     const footballDataClient = createMockFootballDataClient({
-      2021: [{ id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" }],
+      2021: [
+        {
+          id: 42,
+          name: "Arsenal",
+          venue: "Emirates Stadium",
+          tla: "ARS",
+          shortName: null,
+          crest: null,
+          address: null,
+          website: null,
+          founded: null,
+          clubColors: null,
+          area: null,
+          runningCompetitions: [],
+          coach: null,
+          lastUpdated: null,
+        },
+      ],
     });
     // Mapping phase asks for unmapped clubs; give it one club with a code
     // that matches the directory, so it maps successfully.

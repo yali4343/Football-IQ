@@ -2,7 +2,9 @@ import { inject, injectable } from "tsyringe";
 import type { Prisma, PrismaClient } from "../generated/prisma/client.js";
 import type { Club, ClubService, Player } from "./ClubService.js";
 
-type ClubWithLeague = Prisma.ClubGetPayload<{ include: { league: true } }>;
+type ClubWithLeague = Prisma.ClubGetPayload<{
+  include: { league: true; area: true };
+}>;
 
 function toClubDto(club: ClubWithLeague): Club {
   return {
@@ -10,6 +12,10 @@ function toClubDto(club: ClubWithLeague): Club {
     name: club.name,
     league: club.league.name,
     stadium: club.stadium,
+    crest: club.crest,
+    founded: club.founded,
+    clubColors: club.clubColors,
+    country: club.area?.name ?? null,
   };
 }
 
@@ -21,7 +27,7 @@ export class PrismaClubService implements ClubService {
 
   async getAllClubs(): Promise<Club[]> {
     const clubs = await this.prisma.club.findMany({
-      include: { league: true },
+      include: { league: true, area: true },
     });
 
     return clubs.map(toClubDto);
@@ -30,7 +36,7 @@ export class PrismaClubService implements ClubService {
   async getClubById(clubId: number): Promise<Club | undefined> {
     const club = await this.prisma.club.findUnique({
       where: { id: clubId },
-      include: { league: true },
+      include: { league: true, area: true },
     });
 
     return club ? toClubDto(club) : undefined;

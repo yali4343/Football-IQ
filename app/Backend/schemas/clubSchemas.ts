@@ -17,8 +17,21 @@ const clubResponseSchema = {
     name: { type: "string" },
     league: { type: "string" },
     stadium: { type: ["string", "null"] },
+    crest: { type: ["string", "null"] },
+    founded: { type: ["integer", "null"] },
+    clubColors: { type: ["string", "null"] },
+    country: { type: ["string", "null"] },
   },
-  required: ["id", "name", "league", "stadium"],
+  required: [
+    "id",
+    "name",
+    "league",
+    "stadium",
+    "crest",
+    "founded",
+    "clubColors",
+    "country",
+  ],
 };
 
 const nullableClubResponseSchema = {
