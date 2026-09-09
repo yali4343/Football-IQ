@@ -41,6 +41,7 @@ function alwaysAvailableClient(
     getLeagueDirectory: vi.fn().mockResolvedValue(directory),
     searchTeam: vi.fn().mockResolvedValue(searchResults),
     getSquad: () => Promise.reject(new Error("not used")),
+    getPlayerProfile: () => Promise.reject(new Error("not used")),
   };
 }
 
@@ -161,6 +162,7 @@ describe("ClubMapper", () => {
       getLeagueDirectory,
       searchTeam,
       getSquad: () => Promise.reject(new Error("not used")),
+      getPlayerProfile: () => Promise.reject(new Error("not used")),
     };
 
     const result = await mapper(prisma, client).mapLeagueClubs(

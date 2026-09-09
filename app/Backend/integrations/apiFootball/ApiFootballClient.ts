@@ -13,6 +13,25 @@ export interface ApiFootballSquadPlayer {
   photo: string | null;
 }
 
+// Deliberately excludes `injured`: API-Football's free plan only allows
+// season=2022-2024 on /players, and unlike the other bio fields (fixed
+// facts, not season-versioned), `injured` is a live status flag whose
+// currency relative to that season couldn't be confirmed — see the
+// player-profile-modal plan notes.
+export interface ApiFootballPlayerProfile {
+  id: number;
+  name: string;
+  firstname: string | null;
+  lastname: string | null;
+  birthDate: string | null;
+  birthPlace: string | null;
+  birthCountry: string | null;
+  nationality: string | null;
+  height: string | null;
+  weight: string | null;
+  photo: string | null;
+}
+
 export interface ApiFootballClient {
   /** Whether it's currently safe to make another request without risking the daily quota. */
   hasQuotaRemaining(): boolean;
@@ -24,4 +43,8 @@ export interface ApiFootballClient {
   ): Promise<ApiFootballTeam[]>;
   searchTeam(name: string): Promise<ApiFootballTeam[]>;
   getSquad(teamId: number): Promise<ApiFootballSquadPlayer[]>;
+  getPlayerProfile(
+    playerId: number,
+    season: number,
+  ): Promise<ApiFootballPlayerProfile | null>;
 }

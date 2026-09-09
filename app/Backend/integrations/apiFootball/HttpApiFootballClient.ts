@@ -4,6 +4,7 @@ import { createRateLimitThrottle } from "../http/rateLimitThrottle.js";
 import { requireApiKey } from "../http/requireApiKey.js";
 import type {
   ApiFootballClient,
+  ApiFootballPlayerProfile,
   ApiFootballSquadPlayer,
   ApiFootballTeam,
 } from "./ApiFootballClient.js";
@@ -34,6 +35,29 @@ interface ApiFootballSquadsResponse {
       position: string;
       photo: string | null;
     }>;
+  }>;
+}
+
+interface ApiFootballPlayersResponse {
+  errors: unknown;
+  response: Array<{
+    player: {
+      id: number;
+      name: string;
+      firstname: string | null;
+      lastname: string | null;
+      birth: {
+        date: string | null;
+        place: string | null;
+        country: string | null;
+      };
+      nationality: string | null;
+      height: string | null;
+      weight: string | null;
+      photo: string | null;
+    };
+    // Season-scoped per-competition stats — intentionally not read here.
+    statistics: unknown;
   }>;
 }
 
@@ -96,6 +120,37 @@ export class HttpApiFootballClient implements ApiFootballClient {
       position: player.position,
       photo: player.photo,
     }));
+  }
+
+  async getPlayerProfile(
+    playerId: number,
+    season: number,
+  ): Promise<ApiFootballPlayerProfile | null> {
+    const body = await this.request<ApiFootballPlayersResponse>(
+      `/players?id=${playerId}&season=${season}`,
+    );
+
+    const entry = body.response[0];
+
+    if (!entry) {
+      return null;
+    }
+
+    const { player } = entry;
+
+    return {
+      id: player.id,
+      name: player.name,
+      firstname: player.firstname,
+      lastname: player.lastname,
+      birthDate: player.birth?.date ?? null,
+      birthPlace: player.birth?.place ?? null,
+      birthCountry: player.birth?.country ?? null,
+      nationality: player.nationality,
+      height: player.height,
+      weight: player.weight,
+      photo: player.photo,
+    };
   }
 
   private async request<T>(path: string): Promise<T> {
