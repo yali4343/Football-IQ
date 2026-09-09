@@ -11,6 +11,7 @@ export interface Club {
   name: string;
   league: string;
   stadium: string | null;
+  stadiumImageUrl: string | null;
   crest: string | null;
   founded: number | null;
   clubColors: string | null;

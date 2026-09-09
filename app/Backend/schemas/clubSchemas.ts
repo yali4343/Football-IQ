@@ -28,6 +28,11 @@ const clubResponseSchema = {
     name: { type: "string" },
     league: { type: "string" },
     stadium: { type: ["string", "null"] },
+    stadiumImageUrl: {
+      type: ["string", "null"],
+      description:
+        "URL of a stadium/venue photo sourced from TheSportsDB, matched by the club's stadium name. Null if no matching venue or image was found.",
+    },
     crest: { type: ["string", "null"] },
     founded: { type: ["integer", "null"] },
     clubColors: { type: ["string", "null"] },
@@ -39,6 +44,7 @@ const clubResponseSchema = {
     "name",
     "league",
     "stadium",
+    "stadiumImageUrl",
     "crest",
     "founded",
     "clubColors",
