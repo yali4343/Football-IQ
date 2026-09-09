@@ -124,8 +124,8 @@ function App() {
                   </div>
                 ) : (
                   <p className="mt-6 max-w-md text-sm leading-6 text-muted">
-                    Your club details and accent will appear here after you make
-                    a selection.
+                    Your club details will appear here after you make a
+                    selection.
                   </p>
                 )}
               </div>
