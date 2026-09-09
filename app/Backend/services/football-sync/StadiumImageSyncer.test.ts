@@ -38,8 +38,10 @@ function syncer(
 
 function theSportsDbClient(
   imageByVenue: Record<string, string | null | Error>,
+  isRateLimited: () => boolean = () => false,
 ): TheSportsDbClient {
   return {
+    isRateLimited,
     findVenueImageUrl: vi.fn().mockImplementation((venueName: string) => {
       const result = imageByVenue[venueName];
       if (result instanceof Error) {
@@ -78,7 +80,11 @@ describe("StadiumImageSyncer", () => {
       where: { id: 10 },
       data: { stadiumImageUrl: "https://example.com/elland-road.jpg" },
     });
-    expect(result).toEqual({ updated: 1, clubsWithoutStadiumImage: [] });
+    expect(result).toEqual({
+      updated: 1,
+      clubsWithoutStadiumImage: [],
+      skippedRateLimited: 0,
+    });
   });
 
   it("records a club without failing the sync when there is no matching venue", async () => {
@@ -96,6 +102,7 @@ describe("StadiumImageSyncer", () => {
     expect(result).toEqual({
       updated: 0,
       clubsWithoutStadiumImage: ["Leeds United"],
+      skippedRateLimited: 0,
     });
   });
 
@@ -115,6 +122,7 @@ describe("StadiumImageSyncer", () => {
     expect(result).toEqual({
       updated: 0,
       clubsWithoutStadiumImage: ["Leeds United"],
+      skippedRateLimited: 0,
     });
   });
 
@@ -132,7 +140,48 @@ describe("StadiumImageSyncer", () => {
     );
 
     expect(prisma.club.update).not.toHaveBeenCalled();
-    expect(result).toEqual({ updated: 1, clubsWithoutStadiumImage: [] });
+    expect(result).toEqual({
+      updated: 1,
+      clubsWithoutStadiumImage: [],
+      skippedRateLimited: 0,
+    });
+  });
+
+  it("stops calling the provider once rate-limited, without marking remaining clubs as missing", async () => {
+    const secondClub: ClubFixture = {
+      id: 11,
+      name: "Arsenal FC",
+      stadium: "Emirates Stadium",
+    };
+    const thirdClub: ClubFixture = {
+      id: 12,
+      name: "Chelsea FC",
+      stadium: "Stamford Bridge",
+    };
+    const prisma = createMockPrisma([club, secondClub, thirdClub]);
+    let rateLimited = false;
+    const client = theSportsDbClient(
+      { "Elland Road": null },
+      () => rateLimited,
+    );
+    client.findVenueImageUrl = vi.fn().mockImplementation(() => {
+      rateLimited = true;
+      return Promise.resolve(null);
+    });
+
+    const result = await syncer(prisma, client).syncLeague(
+      league,
+      false,
+      false,
+      undefined,
+    );
+
+    expect(client.findVenueImageUrl).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      updated: 0,
+      clubsWithoutStadiumImage: [],
+      skippedRateLimited: 3,
+    });
   });
 
   it("queries every active club (not just missing ones) when forced", async () => {

@@ -75,7 +75,9 @@ async function main() {
       logger.log(`    unmapped: ${league.unmappedClubs.join(", ")}`);
     }
 
-    logger.log(`    stadium images updated ${league.stadiumImagesUpdated}`);
+    logger.log(
+      `    stadium images updated ${league.stadiumImagesUpdated}, skipped (rate limited) ${league.stadiumImagesSkippedRateLimited}`,
+    );
 
     if (league.clubsWithoutStadiumImage.length > 0) {
       logger.log(

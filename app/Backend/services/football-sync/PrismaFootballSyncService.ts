@@ -70,6 +70,8 @@ export class PrismaFootballSyncService implements FootballSyncService {
         membership.stadiumImagesUpdated = stadiumImages.updated;
         membership.clubsWithoutStadiumImage =
           stadiumImages.clubsWithoutStadiumImage;
+        membership.stadiumImagesSkippedRateLimited =
+          stadiumImages.skippedRateLimited;
 
         const squads = await this.squadSyncer.syncLeague(
           league,

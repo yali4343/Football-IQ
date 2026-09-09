@@ -78,6 +78,7 @@ function createMockApiFootballClient(options: {
 
 function createMockTheSportsDbClient(): TheSportsDbClient {
   return {
+    isRateLimited: () => false,
     findVenueImageUrl: vi.fn().mockResolvedValue(null),
   };
 }

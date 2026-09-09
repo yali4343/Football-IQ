@@ -25,7 +25,11 @@ export class StadiumImageSyncer {
     force: boolean,
     dryRun: boolean,
     clubSlug: string | undefined,
-  ): Promise<{ updated: number; clubsWithoutStadiumImage: string[] }> {
+  ): Promise<{
+    updated: number;
+    clubsWithoutStadiumImage: string[];
+    skippedRateLimited: number;
+  }> {
     const allClubs = await this.prisma.club.findMany({
       where: {
         leagueId: league.id,
@@ -39,9 +43,19 @@ export class StadiumImageSyncer {
       : allClubs;
 
     let updated = 0;
+    let skippedRateLimited = 0;
     const clubsWithoutStadiumImage: string[] = [];
 
     for (const club of clubs) {
+      if (this.theSportsDbClient.isRateLimited()) {
+        // Once blocked, every further request this run would fail the same
+        // way — skip outright rather than waiting out the throttle on a
+        // doomed request. A later run (still targeting stadiumImageUrl:
+        // null clubs) naturally retries these.
+        skippedRateLimited += 1;
+        continue;
+      }
+
       const imageUrl = await this.findImage(club);
 
       if (imageUrl) {
@@ -52,12 +66,16 @@ export class StadiumImageSyncer {
           });
         }
         updated += 1;
+      } else if (this.theSportsDbClient.isRateLimited()) {
+        // This club's own request is what tripped the limit — don't count
+        // it as a confirmed miss.
+        skippedRateLimited += 1;
       } else {
         clubsWithoutStadiumImage.push(club.name);
       }
     }
 
-    return { updated, clubsWithoutStadiumImage };
+    return { updated, clubsWithoutStadiumImage, skippedRateLimited };
   }
 
   private async findImage(club: StadiumImageClub): Promise<string | null> {
