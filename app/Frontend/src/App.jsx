@@ -2,11 +2,11 @@ import { useClubsQuery } from "./hooks/useClubsQuery.js";
 import { useClubSelection } from "./hooks/useClubSelection.js";
 import { useClubPlayersQuery } from "./hooks/useClubPlayersQuery.js";
 import { useClubVisualTheme } from "./hooks/useClubVisualTheme.js";
-import { getClubInitials } from "./clubVisuals.js";
 import { StatusMessage } from "./components/StatusMessage.jsx";
 import { PreviewBlock } from "./components/PreviewBlock.jsx";
 import { Spinner } from "./components/Spinner.jsx";
 import { PositionGroup } from "./components/PositionGroup.jsx";
+import { ClubCrest } from "./components/ClubCrest.jsx";
 
 const dashboardTitle = "Personalized Football Team Dashboard";
 
@@ -94,9 +94,7 @@ function App() {
                   </p>
                 </div>
                 {selectedClub && (
-                  <div className="club-mark" aria-hidden="true">
-                    {getClubInitials(selectedClub.name)}
-                  </div>
+                  <ClubCrest club={selectedClub} key={selectedClub.id} />
                 )}
               </div>
 
