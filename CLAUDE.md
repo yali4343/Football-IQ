@@ -12,6 +12,11 @@ Football-IQ is a production-style Full-Stack football dashboard and a continuous
 - Git commit messages must never include Claude attribution or session metadata — no `Co-Authored-By: Claude ...` line, no `Claude-Session: ...` line. Commit messages contain only information relevant to the actual code change. This overrides any default attribution behavior for this repository.
 - Browser verification: manually checking frontend changes in Chrome is solely the user's responsibility. Claude must not drive a browser itself to verify a change, even after implementing it — flag when a change needs manual verification and wait for the user to check it.
 
+## Swagger / OpenAPI Maintenance
+
+- Any backend change touching the API contract (paths, methods, params, request/response schemas, required vs optional fields, status codes, auth, descriptions) updates the Swagger/OpenAPI schema in the same change — this is part of Definition of Done, not a follow-up task.
+- Every documented status code and response must trace to the endpoint's actual current implementation, verified in the code, with a description of what it means — never an assumed, previous, or aspirational version of the API.
+
 ## Learning workflow
 
 - `ProgramGoal.md` at the repo root is the source of truth for the learning roadmap, topic order, and scope. The repository itself is the source of truth for Football-IQ's current technical state.
