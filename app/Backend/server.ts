@@ -9,7 +9,15 @@ import { container } from "./container.js";
 import type { ClubService } from "./services/index.js";
 
 const fastify = Fastify({
-  logger: true,
+  logger: {
+    transport: {
+      target: "pino-pretty",
+      options: {
+        translateTime: "HH:MM:ss",
+        ignore: "pid,hostname",
+      },
+    },
+  },
 });
 
 const clubService = container.resolve<ClubService>("ClubService");
@@ -63,13 +71,13 @@ await fastify.register(swaggerUi, {
   routePrefix: "documentation",
 });
 
-fastify.addHook("onRequest", async (request) => {
-  console.log("onRequest:", request.method, request.url);
-});
+// fastify.addHook("onRequest", async (request) => {
+//   console.log("onRequest:", request.method, request.url);
+// });
 
-fastify.addHook("preHandler", async (request) => {
-  console.log("preHandler:", request.method, request.url);
-});
+// fastify.addHook("preHandler", async (request) => {
+//   console.log("preHandler:", request.method, request.url);
+// });
 
 fastify.register(clubRoutes, {
   prefix: "/clubs",
