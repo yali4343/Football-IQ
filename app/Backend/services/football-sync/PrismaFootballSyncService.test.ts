@@ -8,6 +8,7 @@ import type {
   FootballDataClient,
   FootballDataTeam,
 } from "../../integrations/footballData/FootballDataClient.js";
+import type { TheSportsDbClient } from "../../integrations/theSportsDb/TheSportsDbClient.js";
 import { PrismaFootballSyncService } from "./PrismaFootballSyncService.js";
 
 // PrismaFootballSyncService constructs MembershipSyncer/ClubMapper/
@@ -75,15 +76,23 @@ function createMockApiFootballClient(options: {
   };
 }
 
+function createMockTheSportsDbClient(): TheSportsDbClient {
+  return {
+    findVenueImageUrl: vi.fn().mockResolvedValue(null),
+  };
+}
+
 function service(
   prisma: ReturnType<typeof createMockPrisma>,
   footballDataClient: FootballDataClient,
   apiFootballClient: ApiFootballClient,
+  theSportsDbClient: TheSportsDbClient = createMockTheSportsDbClient(),
 ) {
   return new PrismaFootballSyncService(
     prisma as unknown as PrismaClient,
     footballDataClient,
     apiFootballClient,
+    theSportsDbClient,
   );
 }
 

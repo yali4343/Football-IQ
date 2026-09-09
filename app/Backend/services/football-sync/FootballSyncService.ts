@@ -10,6 +10,8 @@ export interface LeagueMembershipSummary {
   clubsDeactivated: number;
   clubsMapped: number;
   unmappedClubs: string[];
+  stadiumImagesUpdated: number;
+  clubsWithoutStadiumImage: string[];
   playersCreated: number;
   playersUpdated: number;
   playersDeactivated: number;
