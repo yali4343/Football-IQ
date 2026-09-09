@@ -10,7 +10,7 @@ export function ClubAnthemPlayer({ videoId, clubName }) {
         onClick={() => setIsPlaying((current) => !current)}
         className="inline-flex items-center gap-2 rounded-panel border border-(--hero-info-color) px-3 py-1.5 text-sm font-semibold text-(--hero-heading-color) transition hover:bg-white/10"
       >
-        {isPlaying ? "✕ Hide anthem" : "▶ Play anthem"}
+        {isPlaying ? "✕ Close the song" : `▶ Play ${clubName}'s fun song`}
       </button>
 
       {isPlaying && (
