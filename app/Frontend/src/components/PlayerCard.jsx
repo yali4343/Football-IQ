@@ -29,9 +29,8 @@ export function PlayerCard({ player }) {
 
       <div className="min-w-0">
         <p className="truncate font-semibold text-body">{player.name}</p>
-        <p className="text-xs text-subtle">{player.position}</p>
         {player.age != null && (
-          <p className="text-xs text-subtle">Age {player.age}</p>
+          <p className="text-xs text-subtle">Age: {player.age}</p>
         )}
       </div>
     </div>
