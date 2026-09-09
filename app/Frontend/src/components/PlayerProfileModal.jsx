@@ -3,7 +3,7 @@ import { PlayerAvatar } from "./PlayerAvatar.jsx";
 
 function formatBirth(player) {
   const datePart = player.dateOfBirth
-    ? new Date(player.dateOfBirth).toLocaleDateString(undefined, {
+    ? new Date(player.dateOfBirth).toLocaleDateString("en-GB", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -103,13 +103,13 @@ export function PlayerProfileModal({ player, onClose }) {
           {player.height && (
             <div className="flex justify-between gap-4">
               <dt className="text-subtle">Height</dt>
-              <dd className="text-body">{player.height}</dd>
+              <dd className="text-body">{player.height} cm</dd>
             </div>
           )}
           {player.weight && (
             <div className="flex justify-between gap-4">
               <dt className="text-subtle">Weight</dt>
-              <dd className="text-body">{player.weight}</dd>
+              <dd className="text-body">{player.weight} kg</dd>
             </div>
           )}
         </dl>
