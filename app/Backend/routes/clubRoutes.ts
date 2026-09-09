@@ -4,6 +4,11 @@ import AppError from "../errors/AppError.js";
 import {
   clubIdParamsSchema,
   clubSelectionBodySchema,
+  clubResponseSchema,
+  nullableClubResponseSchema,
+  clubsResponseSchema,
+  playersResponseSchema,
+  errorResponseSchema,
 } from "../schemas/clubSchemas.js";
 import type { ClubService } from "../services/index.js";
 
@@ -71,6 +76,9 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
         summary: "Get all clubs",
         description: "Returns all currently supported football clubs",
         tags: ["Clubs"],
+        response: {
+          [HTTP_STATUS.OK]: clubsResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -87,6 +95,9 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
         summary: "Get the selected club",
         description: "Returns the currently selected football club, if any",
         tags: ["Clubs"],
+        response: {
+          [HTTP_STATUS.OK]: nullableClubResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -103,6 +114,11 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
         summary: "Select a club",
         description: "Saves the currently selected football club",
         tags: ["Clubs"],
+        response: {
+          [HTTP_STATUS.OK]: clubResponseSchema,
+          [HTTP_STATUS.NOT_FOUND]: errorResponseSchema,
+          [HTTP_STATUS.UNPROCESSABLE_ENTITY]: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -121,6 +137,11 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
         summary: "Get club by ID",
         description: "Returns one supported football club",
         tags: ["Clubs"],
+        response: {
+          [HTTP_STATUS.OK]: clubResponseSchema,
+          [HTTP_STATUS.NOT_FOUND]: errorResponseSchema,
+          [HTTP_STATUS.UNPROCESSABLE_ENTITY]: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -139,6 +160,11 @@ async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) 
         summary: "Get club players",
         description: "Returns the squad for one supported football club",
         tags: ["Clubs"],
+        response: {
+          [HTTP_STATUS.OK]: playersResponseSchema,
+          [HTTP_STATUS.NOT_FOUND]: errorResponseSchema,
+          [HTTP_STATUS.UNPROCESSABLE_ENTITY]: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
