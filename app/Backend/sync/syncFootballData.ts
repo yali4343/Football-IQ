@@ -67,6 +67,9 @@ async function main() {
     logger.log(
       `    clubs skipped: ${league.clubsSkippedFresh} fresh, ${league.clubsSkippedQuota} quota`,
     );
+    logger.log(
+      `    profiles updated ${league.profilesUpdated}, skipped (quota) ${league.profilesSkippedQuota}, failed ${league.profilesFailed}`,
+    );
 
     if (league.unmappedClubs.length > 0) {
       logger.log(`    unmapped: ${league.unmappedClubs.join(", ")}`);
