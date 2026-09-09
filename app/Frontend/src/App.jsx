@@ -239,6 +239,35 @@ function App() {
           </section>
         </div>
 
+        <PreviewBlock
+          title="Squad"
+          description={
+            selectedClub
+              ? `${selectedClub.name}'s current squad:`
+              : "More club information is coming soon. This will include squad details, club history, and more."
+          }
+          className="mt-5 min-h-40"
+        >
+          {selectedClub &&
+            (isLoadingPlayers ? (
+              <p className="mt-3 flex items-center text-sm text-subtle">
+                <Spinner className="mr-2" />
+                Loading squad...
+              </p>
+            ) : (
+              <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-body sm:grid-cols-4">
+                {players.map((player) => (
+                  <li key={player.id}>
+                    <span className="font-semibold">{player.name}</span>
+                    <span className="block text-xs text-subtle">
+                      {player.position}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ))}
+        </PreviewBlock>
+
         <section className="mt-16" aria-labelledby="preview-heading">
           <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
             <PreviewBlock
@@ -252,46 +281,6 @@ function App() {
               className="min-h-56"
             />
           </div>
-
-          <div className="mt-5 grid gap-5 md:grid-cols-2">
-            <PreviewBlock
-              title="Recent Results"
-              description="Recent match results will appear here in a future release."
-            />
-            <PreviewBlock
-              title="Team Form"
-              description="Form data will be available when the dashboard connects to match results."
-            />
-          </div>
-
-          <PreviewBlock
-            title="Club Overview"
-            description={
-              selectedClub
-                ? `${selectedClub.name}'s current squad:`
-                : "More club information is coming soon. This will include squad details, club history, and more."
-            }
-            className="mt-5 min-h-40"
-          >
-            {selectedClub &&
-              (isLoadingPlayers ? (
-                <p className="mt-3 flex items-center text-sm text-subtle">
-                  <Spinner className="mr-2" />
-                  Loading squad...
-                </p>
-              ) : (
-                <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-body sm:grid-cols-4">
-                  {players.map((player) => (
-                    <li key={player.id}>
-                      <span className="font-semibold">{player.name}</span>
-                      <span className="block text-xs text-subtle">
-                        {player.position}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ))}
-          </PreviewBlock>
         </section>
       </div>
     </main>
