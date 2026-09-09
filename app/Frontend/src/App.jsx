@@ -9,29 +9,10 @@ import { Spinner } from "./components/Spinner.jsx";
 
 const dashboardTitle = "Personalized Football Team Dashboard";
 
-function BrandMark() {
-  return (
-    <div className="flex items-center gap-2.5">
-      <img
-        src="/footballIQ-logo.png"
-        alt=""
-        className="h-9 w-9 rounded-panel object-cover sm:h-10 sm:w-10"
-      />
-      <span className="font-display text-lg leading-none text-ink sm:text-xl">
-        Football IQ
-      </span>
-    </div>
-  );
-}
-
 function DashboardStatusScreen({ busy = false, children }) {
   return (
     <main className="dashboard-shell" aria-busy={busy || undefined}>
       <div className="dashboard-frame">
-        <header className="flex items-start justify-between gap-6 border-b border-border-strong pb-6">
-          <p className="eyebrow">Matchday dashboard</p>
-          <BrandMark />
-        </header>
         <h1 className="mt-8 font-display text-5xl leading-none text-ink md:text-6xl lg:text-7xl">
           {dashboardTitle}
         </h1>
@@ -87,12 +68,10 @@ function App() {
       <div className="dashboard-frame">
         <header className="flex items-start justify-between gap-6 border-b border-border-strong pb-6">
           <div>
-            <p className="eyebrow">Matchday dashboard</p>
             <h1 className="font-display mt-1 text-lg leading-none text-ink sm:text-xl">
               {dashboardTitle}
             </h1>
           </div>
-          <BrandMark />
         </header>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
