@@ -47,6 +47,16 @@ function App() {
 
   const dashboardStyle = useClubVisualTheme(selectedClub);
 
+  const heroStyle = selectedClub?.stadiumImageUrl
+    ? {
+        backgroundImage: `linear-gradient(rgba(12, 16, 14, 0.55), rgba(12, 16, 14, 0.55)), url("${selectedClub.stadiumImageUrl}")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        "--hero-heading-color": "#f5f7f4",
+        "--hero-info-color": "#e4e8e2",
+      }
+    : undefined;
+
   if (isLoading) {
     return (
       <DashboardStatusScreen busy>
@@ -83,13 +93,16 @@ function App() {
           <section
             className="selected-stage"
             aria-labelledby="selected-club-heading"
+            style={heroStyle}
           >
-            <div className="stadium-lines" aria-hidden="true" />
+            {!selectedClub?.stadiumImageUrl && (
+              <div className="stadium-lines" aria-hidden="true" />
+            )}
             <div className="relative flex min-h-92 flex-col justify-between gap-10 p-6 sm:p-9">
               <div className="flex items-start justify-between gap-5">
                 <div>
                   <p
-                    className="max-w-xs text-sm leading-6 text-muted"
+                    className="max-w-xs text-sm leading-6 text-(--hero-info-color)"
                     aria-live="polite"
                   >
                     {selectedClub
@@ -105,12 +118,12 @@ function App() {
               <div>
                 <h2
                   id="selected-club-heading"
-                  className="font-display max-w-3xl text-6xl leading-[0.86] text-(--club-ink) md:text-7xl lg:text-8xl"
+                  className="font-display max-w-3xl text-6xl leading-[0.86] text-(--hero-heading-color) md:text-7xl lg:text-8xl"
                 >
                   {selectedClub?.name ?? "Choose your club"}
                 </h2>
                 {selectedClub ? (
-                  <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+                  <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-(--hero-info-color)">
                     <span>League: {selectedClub.league}</span>
                     <span>Stadium: {selectedClub.stadium}</span>
                     {selectedClub.founded != null && (

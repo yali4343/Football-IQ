@@ -89,6 +89,10 @@ select:focus-visible {
   transition:
     background-color 200ms ease,
     border-color 200ms ease;
+  /* Defaults reproduce today's look; overridden inline only when a
+     stadium photo is set as the background (see App.jsx). */
+  --hero-heading-color: var(--club-ink);
+  --hero-info-color: var(--color-muted);
 }
 
 .stadium-lines {
