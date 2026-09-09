@@ -66,7 +66,10 @@ function sendClubOrNotFound(club: unknown, reply: FastifyReply) {
   return reply.code(HTTP_STATUS.OK).send(club);
 }
 
-async function clubRoutes(fastify: FastifyInstance, options: ClubRoutesOptions) {
+async function clubRoutes(
+  fastify: FastifyInstance,
+  options: ClubRoutesOptions,
+) {
   const { clubService } = options;
 
   fastify.get(
