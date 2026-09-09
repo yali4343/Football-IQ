@@ -11,13 +11,44 @@ const BASE_URL = "https://api.football-data.org/v4";
 // Free-tier limit is ~10 requests/minute; stay comfortably under it.
 const MIN_DELAY_MS = 6500;
 
-interface FootballDataTeamsResponse {
-  teams?: Array<{
+interface RawFootballDataTeam {
+  id: number;
+  name: string;
+  shortName: string | null;
+  tla: string | null;
+  crest: string | null;
+  address: string | null;
+  website: string | null;
+  founded: number | null;
+  clubColors: string | null;
+  venue: string | null;
+  area: {
     id: number;
     name: string;
-    venue: string | null;
-    tla: string | null;
+    code: string | null;
+    flag: string | null;
+  } | null;
+  runningCompetitions?: Array<{
+    id: number;
+    name: string;
+    code: string | null;
+    type: string | null;
+    emblem: string | null;
   }>;
+  coach: {
+    id: number | null;
+    firstName: string | null;
+    lastName: string | null;
+    name: string | null;
+    dateOfBirth: string | null;
+    nationality: string | null;
+    contract: { start: string | null; until: string | null } | null;
+  } | null;
+  lastUpdated: string | null;
+}
+
+interface FootballDataTeamsResponse {
+  teams?: RawFootballDataTeam[];
   message?: string;
 }
 
@@ -52,8 +83,45 @@ export class HttpFootballDataClient implements FootballDataClient {
     return (body.teams ?? []).map((team) => ({
       id: team.id,
       name: team.name,
-      venue: team.venue ?? null,
+      shortName: team.shortName ?? null,
       tla: team.tla ?? null,
+      crest: team.crest ?? null,
+      address: team.address ?? null,
+      website: team.website ?? null,
+      founded: team.founded ?? null,
+      clubColors: team.clubColors ?? null,
+      venue: team.venue ?? null,
+      area: team.area
+        ? {
+            id: team.area.id,
+            name: team.area.name,
+            code: team.area.code ?? null,
+            flag: team.area.flag ?? null,
+          }
+        : null,
+      runningCompetitions: (team.runningCompetitions ?? []).map((comp) => ({
+        id: comp.id,
+        name: comp.name,
+        code: comp.code ?? null,
+        type: comp.type ?? null,
+        emblem: comp.emblem ?? null,
+      })),
+      // football-data.org returns an all-null coach object (id included)
+      // rather than omitting the field when a team has no coach on record.
+      coach:
+        team.coach && team.coach.id !== null
+          ? {
+              id: team.coach.id,
+              firstName: team.coach.firstName ?? null,
+              lastName: team.coach.lastName ?? null,
+              name: team.coach.name ?? null,
+              dateOfBirth: team.coach.dateOfBirth ?? null,
+              nationality: team.coach.nationality ?? null,
+              contractStart: team.coach.contract?.start ?? null,
+              contractUntil: team.coach.contract?.until ?? null,
+            }
+          : null,
+      lastUpdated: team.lastUpdated ?? null,
     }));
   }
 }

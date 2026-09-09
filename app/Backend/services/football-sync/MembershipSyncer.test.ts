@@ -14,6 +14,43 @@ const premierLeague: SyncTargetLeague = {
   apiFootballLeagueId: null,
 };
 
+// Fills in every field FootballDataTeam now requires with an empty/neutral
+// default, so each test only has to spell out what it actually cares about.
+function team(
+  overrides: Partial<FootballDataTeam> & Pick<FootballDataTeam, "id" | "name">,
+): FootballDataTeam {
+  return {
+    shortName: null,
+    tla: null,
+    crest: null,
+    address: null,
+    website: null,
+    founded: null,
+    clubColors: null,
+    venue: null,
+    area: null,
+    runningCompetitions: [],
+    coach: null,
+    lastUpdated: null,
+    ...overrides,
+  };
+}
+
+// Matches an existing Club row's shape (as returned by
+// prisma.club.findUnique) with the same neutral defaults as team().
+function existingClub(overrides: Record<string, unknown>) {
+  return {
+    shortName: null,
+    crest: null,
+    address: null,
+    website: null,
+    founded: null,
+    clubColors: null,
+    lastUpdated: null,
+    ...overrides,
+  };
+}
+
 function createMockPrisma() {
   return {
     club: {
@@ -22,6 +59,16 @@ function createMockPrisma() {
       update: vi.fn(),
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       count: vi.fn().mockResolvedValue(0),
+    },
+    area: {
+      upsert: vi.fn(),
+    },
+    competition: {
+      upsert: vi.fn(),
+    },
+    coach: {
+      upsert: vi.fn(),
+      deleteMany: vi.fn(),
     },
   };
 }
@@ -51,9 +98,10 @@ describe("MembershipSyncer", () => {
   it("creates a new club", async () => {
     const prisma = createMockPrisma();
     prisma.club.findUnique.mockResolvedValue(null);
+    prisma.club.create.mockResolvedValue({ id: 5 });
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
+      team({ id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" }),
     ]);
 
     const summary = await syncer(prisma, client).sync(premierLeague, false);
@@ -61,10 +109,18 @@ describe("MembershipSyncer", () => {
     expect(prisma.club.create).toHaveBeenCalledWith({
       data: {
         name: "Arsenal",
+        shortName: null,
         stadium: "Emirates Stadium",
+        crest: null,
+        address: null,
+        website: null,
+        founded: null,
+        clubColors: null,
+        lastUpdated: null,
         footballDataId: 42,
         footballDataCode: "ARS",
         leagueId: 1,
+        areaId: null,
         isActive: true,
       },
     });
@@ -78,17 +134,19 @@ describe("MembershipSyncer", () => {
 
   it("updates an existing club when name or stadium changes", async () => {
     const prisma = createMockPrisma();
-    prisma.club.findUnique.mockResolvedValue({
-      id: 5,
-      name: "Arsenal FC",
-      stadium: "Old Stadium Name",
-      footballDataId: 42,
-      footballDataCode: "ARS",
-      isActive: true,
-    });
+    prisma.club.findUnique.mockResolvedValue(
+      existingClub({
+        id: 5,
+        name: "Arsenal FC",
+        stadium: "Old Stadium Name",
+        footballDataId: 42,
+        footballDataCode: "ARS",
+        isActive: true,
+      }),
+    );
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
+      team({ id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" }),
     ]);
 
     const summary = await syncer(prisma, client).sync(premierLeague, false);
@@ -97,8 +155,16 @@ describe("MembershipSyncer", () => {
       where: { id: 5 },
       data: {
         name: "Arsenal",
+        shortName: null,
         stadium: "Emirates Stadium",
+        crest: null,
+        address: null,
+        website: null,
+        founded: null,
+        clubColors: null,
+        lastUpdated: null,
         footballDataCode: "ARS",
+        areaId: null,
         isActive: true,
       },
     });
@@ -107,17 +173,19 @@ describe("MembershipSyncer", () => {
 
   it("reactivates a club that reappears in the response", async () => {
     const prisma = createMockPrisma();
-    prisma.club.findUnique.mockResolvedValue({
-      id: 5,
-      name: "Arsenal",
-      stadium: "Emirates Stadium",
-      footballDataId: 42,
-      footballDataCode: "ARS",
-      isActive: false,
-    });
+    prisma.club.findUnique.mockResolvedValue(
+      existingClub({
+        id: 5,
+        name: "Arsenal",
+        stadium: "Emirates Stadium",
+        footballDataId: 42,
+        footballDataCode: "ARS",
+        isActive: false,
+      }),
+    );
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
+      team({ id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" }),
     ]);
 
     const summary = await syncer(prisma, client).sync(premierLeague, false);
@@ -126,8 +194,16 @@ describe("MembershipSyncer", () => {
       where: { id: 5 },
       data: {
         name: "Arsenal",
+        shortName: null,
         stadium: "Emirates Stadium",
+        crest: null,
+        address: null,
+        website: null,
+        founded: null,
+        clubColors: null,
+        lastUpdated: null,
         footballDataCode: "ARS",
+        areaId: null,
         isActive: true,
       },
     });
@@ -136,19 +212,21 @@ describe("MembershipSyncer", () => {
 
   it("deactivates clubs absent from the response", async () => {
     const prisma = createMockPrisma();
-    prisma.club.findUnique.mockResolvedValue({
-      id: 5,
-      name: "Some Other Club",
-      stadium: null,
-      footballDataId: 999,
-      footballDataCode: "SOC",
-      isActive: true,
-    });
+    prisma.club.findUnique.mockResolvedValue(
+      existingClub({
+        id: 5,
+        name: "Some Other Club",
+        stadium: null,
+        footballDataId: 999,
+        footballDataCode: "SOC",
+        isActive: true,
+      }),
+    );
     prisma.club.updateMany.mockResolvedValue({ count: 1 });
 
     const client = createMockClient([
-      { id: 999, name: "Some Other Club", venue: null, tla: "SOC" },
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
+      team({ id: 999, name: "Some Other Club", venue: null, tla: "SOC" }),
+      team({ id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" }),
     ]);
 
     const summary = await syncer(prisma, client).sync(premierLeague, false);
@@ -189,17 +267,19 @@ describe("MembershipSyncer", () => {
 
   it("running twice with unchanged data makes no further writes", async () => {
     const prisma = createMockPrisma();
-    prisma.club.findUnique.mockResolvedValue({
-      id: 5,
-      name: "Arsenal",
-      stadium: "Emirates Stadium",
-      footballDataId: 42,
-      footballDataCode: "ARS",
-      isActive: true,
-    });
+    prisma.club.findUnique.mockResolvedValue(
+      existingClub({
+        id: 5,
+        name: "Arsenal",
+        stadium: "Emirates Stadium",
+        footballDataId: 42,
+        footballDataCode: "ARS",
+        isActive: true,
+      }),
+    );
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
+      team({ id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" }),
     ]);
     const target = syncer(prisma, client);
 
@@ -216,7 +296,7 @@ describe("MembershipSyncer", () => {
     prisma.club.count.mockResolvedValue(0);
 
     const client = createMockClient([
-      { id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" },
+      team({ id: 42, name: "Arsenal", venue: "Emirates Stadium", tla: "ARS" }),
     ]);
 
     const summary = await syncer(prisma, client).sync(premierLeague, true);
