@@ -9,6 +9,8 @@ import { Spinner } from "./components/Spinner.jsx";
 import { PositionGroup } from "./components/PositionGroup.jsx";
 import { ClubCrest } from "./components/ClubCrest.jsx";
 import { PlayerProfileModal } from "./components/PlayerProfileModal.jsx";
+import { ClubAnthemPlayer } from "./components/ClubAnthemPlayer.jsx";
+import { getClubAnthemVideoId } from "./clubAnthems.js";
 
 const dashboardTitle = "Personalized Football Team Dashboard";
 
@@ -44,6 +46,10 @@ function App() {
   );
 
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+
+  const anthemVideoId = selectedClub
+    ? getClubAnthemVideoId(selectedClub.id)
+    : null;
 
   const dashboardStyle = useClubVisualTheme(selectedClub);
 
@@ -135,6 +141,12 @@ function App() {
                     Your club details will appear here after you make a
                     selection.
                   </p>
+                )}
+                {anthemVideoId && (
+                  <ClubAnthemPlayer
+                    videoId={anthemVideoId}
+                    clubName={selectedClub.name}
+                  />
                 )}
               </div>
             </div>
