@@ -62,16 +62,21 @@ const playerResponseSchema = {
   properties: {
     id: { type: "integer" },
     name: { type: "string" },
+    firstName: { type: ["string", "null"] },
+    lastName: { type: ["string", "null"] },
     position: { type: "string" },
     age: { type: ["integer", "null"] },
     number: { type: ["integer", "null"] },
     nationality: { type: ["string", "null"] },
+    dateOfBirth: { type: ["string", "null"] },
+    birthPlace: { type: ["string", "null"] },
+    birthCountry: { type: ["string", "null"] },
+    height: { type: ["string", "null"] },
+    weight: { type: ["string", "null"] },
     photoUrl: { type: ["string", "null"] },
-    externalApiId: { type: "integer" },
-    isActive: { type: "boolean" },
     clubId: { type: "integer" },
   },
-  required: ["id", "name", "position", "externalApiId", "isActive", "clubId"],
+  required: ["id", "name", "position", "clubId"],
 };
 
 const playersResponseSchema = {

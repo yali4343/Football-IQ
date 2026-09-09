@@ -21,7 +21,18 @@ export interface Club {
 export interface Player {
   id: number;
   name: string;
+  firstName: string | null;
+  lastName: string | null;
   position: string;
+  age: number | null;
+  number: number | null;
+  nationality: string | null;
+  dateOfBirth: string | null;
+  birthPlace: string | null;
+  birthCountry: string | null;
+  height: string | null;
+  weight: string | null;
+  photoUrl: string | null;
   clubId: number;
 }
 
