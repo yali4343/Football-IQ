@@ -1,8 +1,19 @@
-export function PreviewBlock({ title, description, className = "", children }) {
+const DISABLED_MESSAGE = "Select a club to view this.";
+
+export function PreviewBlock({
+  title,
+  description,
+  className = "",
+  children,
+  disabled = false,
+}) {
   return (
     <section
-      className={`relative overflow-hidden border border-border bg-surface p-5 sm:p-6 ${className}`}
+      className={`relative overflow-hidden border border-border bg-surface p-5 sm:p-6 ${
+        disabled ? "opacity-50" : ""
+      } ${className}`}
       aria-labelledby={`${title.toLowerCase().replaceAll(" ", "-")}-heading`}
+      aria-disabled={disabled || undefined}
     >
       <div className="relative flex h-full min-h-32 flex-col justify-between gap-8">
         <div>
@@ -15,9 +26,9 @@ export function PreviewBlock({ title, description, className = "", children }) {
         </div>
         <div>
           <p className="max-w-sm text-sm leading-6 text-subtle">
-            {description}
+            {disabled ? DISABLED_MESSAGE : description}
           </p>
-          {children}
+          {!disabled && children}
         </div>
       </div>
     </section>

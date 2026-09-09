@@ -232,10 +232,9 @@ function App() {
         <PreviewBlock
           title="Squad"
           description={
-            selectedClub
-              ? `${selectedClub.name}'s current squad:`
-              : "More club information is coming soon. This will include squad details, club history, and more."
+            selectedClub ? `${selectedClub.name}'s current squad:` : ""
           }
+          disabled={!selectedClub}
         >
           {selectedClub &&
             (isLoadingPlayers ? (
@@ -271,11 +270,13 @@ function App() {
               title="Upcoming Matches"
               description="Fixture information will appear here when match data is available."
               className="min-h-56"
+              disabled={!selectedClub}
             />
             <PreviewBlock
               title="League Position"
               description="Standings data is coming soon."
               className="min-h-56"
+              disabled={!selectedClub}
             />
           </div>
         </section>
