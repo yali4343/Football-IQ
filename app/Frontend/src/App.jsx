@@ -159,8 +159,8 @@ function App() {
 
             {clubs.length === 0 ? (
               <p className="mt-8 text-sm leading-6 text-subtle">
-                No clubs are available yet. Check back once club data has
-                been synced.
+                No clubs are available yet. Check back once club data has been
+                synced.
               </p>
             ) : (
               <>
@@ -240,16 +240,6 @@ function App() {
         </div>
 
         <section className="mt-16" aria-labelledby="preview-heading">
-          <div className="mb-5 border-b border-border-strong pb-4">
-            <p className="eyebrow">The next whistle</p>
-            <h2
-              id="preview-heading"
-              className="font-display text-4xl leading-none text-ink"
-            >
-              Matchday data
-            </h2>
-          </div>
-
           <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
             <PreviewBlock
               title="Upcoming Matches"
