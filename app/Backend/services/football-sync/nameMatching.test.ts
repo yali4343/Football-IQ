@@ -81,4 +81,27 @@ describe("normalizeClubName", () => {
   it("lowercases and collapses whitespace", () => {
     expect(normalizeClubName("  Real   Madrid  ")).toBe("real madrid");
   });
+
+  it("maps Brighton & Hove Albion to API-Football's short brand name", () => {
+    // API-Football lists this club as just "Brighton" (verified live
+    // against /teams?league=39&season=2024) — no stripping rule can derive
+    // that from the full official name, so it's an explicit alias.
+    expect(normalizeClubName("Brighton & Hove Albion FC")).toBe(
+      normalizeClubName("Brighton"),
+    );
+  });
+
+  it("strips the Italian 'US' club-type prefix", () => {
+    // US Lecce vs API-Football's "Lecce" — verified live against
+    // /teams?league=135&season=2024.
+    expect(normalizeClubName("US Lecce")).toBe(normalizeClubName("Lecce"));
+  });
+
+  it("strips the Italian 'Calcio' descriptor", () => {
+    // US Sassuolo Calcio vs API-Football's "Sassuolo" — verified live via
+    // the API-Football team search endpoint.
+    expect(normalizeClubName("US Sassuolo Calcio")).toBe(
+      normalizeClubName("Sassuolo"),
+    );
+  });
 });

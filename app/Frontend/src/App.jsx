@@ -104,10 +104,8 @@ function App() {
             <div className="relative flex min-h-92 flex-col justify-between gap-10 p-6 sm:p-9">
               <div className="flex items-start justify-between gap-5">
                 <div>
-                  <p className="eyebrow text-(--club-ink)">Selected club</p>
-
                   <p
-                    className="mt-2 max-w-xs text-sm leading-6 text-muted"
+                    className="max-w-xs text-sm leading-6 text-muted"
                     aria-live="polite"
                   >
                     {selectedClub
