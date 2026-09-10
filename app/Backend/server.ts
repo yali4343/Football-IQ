@@ -72,8 +72,10 @@ fastify.register(swagger, {
   },
 });
 
+const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+
 await fastify.register(cors, {
-  origin: "http://localhost:5173",
+  origin: corsOrigin,
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
 });
 

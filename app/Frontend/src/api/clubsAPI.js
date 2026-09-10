@@ -1,4 +1,5 @@
-const CLUBS_URL = "http://localhost:3000/clubs";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const CLUBS_URL = `${API_BASE_URL}/clubs`;
 
 export async function getClubs(signal) {
   const response = await fetch(CLUBS_URL, {
