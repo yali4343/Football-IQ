@@ -23,7 +23,6 @@ services:
   - type: web
     name: football-iq-frontend
     runtime: static
-    plan: free
     rootDir: ./app/Frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
