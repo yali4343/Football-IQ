@@ -1,3 +1,4 @@
+import "dotenv/config";
 import "reflect-metadata";
 import Fastify from "fastify";
 import AppError from "./errors/AppError.js";
@@ -8,16 +9,25 @@ import clubRoutes from "./routes/clubRoutes.js";
 import { container } from "./container.js";
 import type { ClubService } from "./services/index.js";
 
+// pino-pretty spawns a worker thread and resolves itself dynamically by
+// string name at runtime — bundled serverless platforms (Vercel included)
+// can't trace that statically, and worker-thread transports are a known
+// crash source there ("unable to determine transport target for pino").
+// process.env.VERCEL is set automatically in every Vercel deployment, so
+// pretty-printing stays local-dev-only; Vercel gets plain JSON logging,
+// which its Logs tab already renders fine.
 const fastify = Fastify({
-  logger: {
-    transport: {
-      target: "pino-pretty",
-      options: {
-        translateTime: "SYS:HH:MM:ss",
-        ignore: "pid,hostname",
+  logger: process.env.VERCEL
+    ? true
+    : {
+        transport: {
+          target: "pino-pretty",
+          options: {
+            translateTime: "SYS:HH:MM:ss",
+            ignore: "pid,hostname",
+          },
+        },
       },
-    },
-  },
 });
 
 const clubService = container.resolve<ClubService>("ClubService");
