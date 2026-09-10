@@ -13,10 +13,20 @@ jobs:
     defaults:
       run:
         working-directory: app/Backend
+    # Job-level, not step-level: `npm ci` runs the `postinstall` script
+    # (`prisma generate`), which loads prisma.config.ts — and that config
+    # resolves DATABASE_URL eagerly, before the sync script itself ever
+    # runs. Scoping the secrets to only the final step left `npm ci`
+    # without DATABASE_URL and broke `prisma generate`.
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+      THESPORTSDB_API_KEY: ${{ secrets.THESPORTSDB_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "24.14.0"
           cache: npm
@@ -25,8 +35,3 @@ jobs:
       - run: npm ci
 
       - run: npm run sync:football-data
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
-          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
-          THESPORTSDB_API_KEY: ${{ secrets.THESPORTSDB_API_KEY }}
