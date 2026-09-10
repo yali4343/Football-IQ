@@ -79,8 +79,30 @@ diagnosing a failed run.
 
 ## Running it every day
 
-There's no scheduler wired into the app itself — the sync is a plain CLI
-script, so pick whichever way you already run scheduled jobs on your OS.
+### GitHub Actions (recommended — runs even when your computer is off)
+
+`.github/workflows/daily-football-sync.yml` runs `npm run sync:football-data`
+once a day (06:00 UTC) against the same `DATABASE_URL` and API keys the
+deployed backend uses, supplied as repository secrets rather than committed
+to the repo:
+
+- `DATABASE_URL`
+- `API_FOOTBALL_KEY`
+- `FOOTBALL_DATA_API_KEY`
+- `THESPORTSDB_API_KEY`
+
+Add them under the repo's **Settings → Secrets and variables → Actions**.
+A failed run shows up as a red X in the **Actions** tab (and GitHub's
+default email/UI alerting on failed scheduled workflows) with no extra setup
+needed. To trigger a run on demand — e.g. to test after adding secrets —
+use the **Run workflow** button on the workflow's Actions page
+(`workflow_dispatch`).
+
+### Running it manually (local testing / fallback)
+
+The sync is also a plain CLI script, so it can still be run directly from
+any machine — useful for local testing or as a fallback if you'd rather
+schedule it yourself outside GitHub Actions.
 
 ### Windows (Task Scheduler)
 
