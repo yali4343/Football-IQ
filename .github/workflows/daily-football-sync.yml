@@ -1,0 +1,32 @@
+name: Daily football data sync
+
+on:
+  schedule:
+    # 06:00 UTC daily. GitHub Actions cron is always UTC — adjust here if a
+    # specific local time matters more than a fixed UTC time.
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/Backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.14.0"
+          cache: npm
+          cache-dependency-path: app/Backend/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run sync:football-data
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+          THESPORTSDB_API_KEY: ${{ secrets.THESPORTSDB_API_KEY }}
