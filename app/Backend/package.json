@@ -5,6 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "postinstall": "prisma generate",
     "test": "vitest run",
     "build": "tsc",
     "dev": "npm run build && node dist/main.js",
