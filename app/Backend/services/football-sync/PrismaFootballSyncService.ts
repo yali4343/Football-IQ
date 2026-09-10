@@ -10,6 +10,7 @@ import type {
   SyncOptions,
   SyncSummary,
 } from "./FootballSyncService.js";
+import { sortLeaguesByMissingWork } from "./leaguePriority.js";
 import { MembershipSyncer } from "./MembershipSyncer.js";
 import { slugifyLeagueName } from "./nameMatching.js";
 import { PlayerProfileSyncer } from "./PlayerProfileSyncer.js";
@@ -45,11 +46,13 @@ export class PrismaFootballSyncService implements FootballSyncService {
         )
       : leagues;
 
+    const orderedLeagues = await this.orderByMissingWork(targetLeagues);
+
     const summaries: LeagueMembershipSummary[] = [];
     const force = options.force ?? false;
     const dryRun = options.dryRun ?? false;
 
-    for (const league of targetLeagues) {
+    for (const league of orderedLeagues) {
       const membership = await this.membershipSyncer.sync(league, dryRun);
 
       if (!membership.failed) {
@@ -105,5 +108,46 @@ export class PrismaFootballSyncService implements FootballSyncService {
       leagues: summaries,
       requestsUsed: this.apiFootballClient.getRequestsUsed(),
     };
+  }
+
+  // Reorders leagues so the shared API-Football quota is spent on whichever
+  // ones currently have the most missing data first (never-synced clubs,
+  // then clubs with the most incomplete player profiles). Recomputed from
+  // live DB state on every call — a league that's fully backfilled scores 0
+  // and naturally rotates to the back on the next run.
+  private async orderByMissingWork<League extends { id: number }>(
+    leagues: League[],
+  ): Promise<League[]> {
+    if (leagues.length <= 1) {
+      return leagues;
+    }
+
+    const clubs = await this.prisma.club.findMany({
+      where: {
+        leagueId: { in: leagues.map((league) => league.id) },
+        isActive: true,
+        apiFootballId: { not: null },
+      },
+      select: { id: true, leagueId: true, squadLastSyncedAt: true },
+    });
+
+    const missingProfileCounts = await this.prisma.player.groupBy({
+      by: ["clubId"],
+      where: {
+        clubId: { in: clubs.map((club) => club.id) },
+        isActive: true,
+        dateOfBirth: null,
+      },
+      _count: { _all: true },
+    });
+
+    return sortLeaguesByMissingWork(
+      leagues,
+      clubs,
+      missingProfileCounts.map((entry) => ({
+        clubId: entry.clubId,
+        count: entry._count._all,
+      })),
+    );
   }
 }
