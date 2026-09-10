@@ -100,6 +100,7 @@ const port = process.env.PORT || 3000;
 
 await fastify.listen({
   port: Number(port),
+  host: "0.0.0.0",
 });
 
 const shutdown = async (signal: string) => {
