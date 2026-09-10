@@ -82,6 +82,9 @@ export class SquadSyncer {
         isActive: true,
         apiFootballId: { not: null },
       },
+      // Never-synced clubs (null) first — Prisma/Postgres default asc is
+      // NULLS LAST, which would push the most valuable clubs to the back.
+      orderBy: { squadLastSyncedAt: { sort: "asc", nulls: "first" } },
     });
     const clubs = clubSlug
       ? allClubs.filter((club) => slugifyLeagueName(club.name) === clubSlug)

@@ -373,6 +373,27 @@ describe("SquadSyncer", () => {
     expect(result.playersCreated).toBe(1);
   });
 
+  it("queries clubs with never-synced ones ordered first", async () => {
+    const club: ClubFixture = {
+      id: 900,
+      name: "Some Club",
+      apiFootballId: 157,
+      squadLastSyncedAt: null,
+    };
+    const prisma = createMockPrisma([club]);
+    const client = apiFootballClient({ 157: [musiala] });
+
+    await syncer(prisma, client).syncLeague(league, false, false, undefined);
+
+    // Postgres/Prisma's default asc is NULLS LAST, which would push
+    // never-synced clubs (the most valuable to process) to the back.
+    expect(prisma.club.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { squadLastSyncedAt: { sort: "asc", nulls: "first" } },
+      }),
+    );
+  });
+
   it("the quota guard skips remaining clubs cleanly and reports them", async () => {
     const clubA: ClubFixture = {
       id: 900,
