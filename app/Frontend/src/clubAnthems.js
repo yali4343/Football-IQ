@@ -55,9 +55,72 @@ const PREMIER_LEAGUE_ANTHEM_VIDEO_IDS = {
   28: "ma3doiRm38c", // Coventry City FC — chants compilation (62.2K views, low confidence)
 };
 
+// Bundesliga — same "<club> fan song from inside the stadium" search.
+// Several high-view candidates turned out to be produced fan songs from a
+// "WUMMS"-style channel rather than genuine crowd recordings (verified by
+// checking the video title/channel), so those were skipped in favor of a
+// confirmed in-stadium recording even at a lower view count — same standard
+// applied throughout Premier League. Two are lower-confidence (best
+// available for a smaller club, not clearly a widely-recorded moment):
+// 1. FSV Mainz 05 (78) and SV 07 Elversberg (85).
+const BUNDESLIGA_ANTHEM_VIDEO_IDS = {
+  69: "hlZOj_vyYl4", // 1. FC Köln — "Hymne" live (1.72M views)
+  70: "-fentUEg6g0", // TSG 1899 Hoffenheim
+  71: "BxmIyVpg7cI", // Bayer 04 Leverkusen
+  72: "DsvWYxgm9Gk", // Borussia Dortmund
+  73: "ipvNrUKGGQA", // FC Bayern München
+  74: "ebZS6iHY9OA", // FC Schalke 04
+  75: "YCWjlerOH3c", // Hamburger SV
+  76: "ggGNcZeQsSg", // VfB Stuttgart
+  77: "WMSefVNRuJo", // SV Werder Bremen
+  78: "bHeiBwbGPiw", // 1. FSV Mainz 05
+  79: "Jci9sTr5goI", // FC Augsburg
+  80: "C55ALU_t97M", // SC Freiburg
+  81: "SJmIr9wl3xY", // Borussia Mönchengladbach
+  82: "_LW8nDcHoYI", // Eintracht Frankfurt
+  83: "wnvH9OIMZog", // 1. FC Union Berlin
+  84: "UpMMHfDMVUI", // SC Paderborn 07
+  85: "Dd-g_hPpWpc", // SV 07 Elversberg
+  86: "dch4BuF1tG4", // RB Leipzig
+};
+
+// La Liga — same "<club> fan song from inside the stadium" search. A few
+// clubs' top-view candidates turned out to be produced anthem uploads from a
+// "Himnos de Fútbol / JohnnyMLG"-style channel rather than genuine crowd
+// recordings, so those were skipped in favor of a confirmed in-stadium
+// recording even at a lower view count — same standard applied throughout
+// the other leagues. Five are lower-confidence (best available for a
+// smaller fanbase, not clearly a widely-recorded moment): RCD Espanyol (32),
+// Getafe CF (34), Levante UD (38), Deportivo Alavés (43), and Real Racing
+// Club de Santander (48).
+const LA_LIGA_ANTHEM_VIDEO_IDS = {
+  29: "eZeC9VguxaA", // Athletic Club
+  30: "gqyqaRlGdUU", // Club Atlético de Madrid
+  31: "DhkBNSNTktY", // CA Osasuna
+  32: "XUbne8Po3tY", // RCD Espanyol de Barcelona
+  33: "RisqBSF3BTg", // FC Barcelona
+  34: "25fxHSK5pRM", // Getafe CF
+  35: "cKLBLj2k2hs", // Málaga CF
+  36: "D74ahf_1vzU", // Real Madrid CF
+  37: "u-27axzdtn4", // Rayo Vallecano de Madrid
+  38: "WTUEbpvrFSI", // Levante UD
+  39: "F7u3O0yBUF8", // Real Betis Balompié
+  40: "Rs7X3V2xyBA", // Real Sociedad de Fútbol
+  41: "R2178RumhXU", // Villarreal CF
+  42: "o8kyr5ehBok", // Valencia CF
+  43: "y8PuZk-erNo", // Deportivo Alavés
+  44: "1-Z4Kq-jnVo", // Elche CF
+  45: "m18evrWoDuM", // RC Celta de Vigo
+  46: "V9TiXrwiiec", // Sevilla FC
+  47: "u7YQuxeNzdc", // RC Deportivo La Coruña
+  48: "V_wJkEyPVTc", // Real Racing Club de Santander
+};
+
 const CLUB_ANTHEM_VIDEO_IDS = {
   ...SERIE_A_ANTHEM_VIDEO_IDS,
   ...PREMIER_LEAGUE_ANTHEM_VIDEO_IDS,
+  ...BUNDESLIGA_ANTHEM_VIDEO_IDS,
+  ...LA_LIGA_ANTHEM_VIDEO_IDS,
 };
 
 export function getClubAnthemVideoId(clubId) {
