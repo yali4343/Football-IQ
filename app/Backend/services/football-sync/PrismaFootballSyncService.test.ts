@@ -44,6 +44,7 @@ function createMockPrisma() {
       update: vi.fn(),
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
+    player: { groupBy: vi.fn().mockResolvedValue([]) },
     area: { upsert: vi.fn() },
     competition: { upsert: vi.fn() },
     coach: { upsert: vi.fn(), deleteMany: vi.fn() },
@@ -207,6 +208,52 @@ describe("PrismaFootballSyncService (orchestration)", () => {
       clubsMapped: 1,
       unmappedClubs: [],
     });
+  });
+
+  it("processes leagues in missing-data priority order, not league.findMany's order", async () => {
+    const prisma = createMockPrisma();
+    prisma.league.findMany.mockResolvedValue([premierLeague, laLiga]);
+
+    prisma.club.findMany.mockImplementation(
+      (args: { where?: { leagueId?: unknown } }) => {
+        const leagueIdFilter = args?.where?.leagueId;
+        const isCrossLeaguePriorityQuery =
+          leagueIdFilter !== null &&
+          typeof leagueIdFilter === "object" &&
+          "in" in leagueIdFilter;
+
+        if (isCrossLeaguePriorityQuery) {
+          // La Liga's club has never had its squad synced; Premier
+          // League's has — so La Liga should be processed first even
+          // though it sorts second in league.findMany's own order.
+          return Promise.resolve([
+            { id: 100, leagueId: laLiga.id, squadLastSyncedAt: null },
+            { id: 200, leagueId: premierLeague.id, squadLastSyncedAt: new Date() },
+          ]);
+        }
+
+        // Per-league calls made by MembershipSyncer/ClubMapper/SquadSyncer
+        // — no real clubs needed for this test, only processing order.
+        return Promise.resolve([]);
+      },
+    );
+
+    const callOrder: number[] = [];
+    const getCompetitionTeams = vi.fn().mockImplementation(
+      (footballDataId: number) => {
+        callOrder.push(footballDataId);
+        return Promise.resolve([]);
+      },
+    );
+    const footballDataClient: FootballDataClient = { getCompetitionTeams };
+    const apiFootballClient = createMockApiFootballClient();
+
+    await service(prisma, footballDataClient, apiFootballClient).run();
+
+    expect(callOrder).toEqual([
+      laLiga.footballDataId,
+      premierLeague.footballDataId,
+    ]);
   });
 
   it("reports requestsUsed from the ApiFootballClient", async () => {
