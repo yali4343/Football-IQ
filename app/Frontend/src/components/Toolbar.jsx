@@ -68,7 +68,7 @@ function LeaguesInfoMenu() {
         <div
           role="menu"
           aria-label="Leagues Info"
-          className="absolute right-0 z-10 mt-2 w-44 rounded-(--radius-panel) border border-border bg-(--color-surface) py-1 shadow-lg"
+          className="absolute left-0 z-10 mt-2 w-44 rounded-(--radius-panel) border border-border bg-(--color-surface) py-1 shadow-lg"
         >
           {LEAGUES.map((league) => (
             <Link
@@ -90,23 +90,26 @@ function LeaguesInfoMenu() {
 export function Toolbar() {
   return (
     <header className="border-b border-border">
-      <div className="mx-auto flex w-full max-w-[78rem] items-center justify-between px-5 py-4 sm:px-8">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-lg font-bold leading-none text-body">
-            Choose your club
-          </span>
-        </Link>
-
-        <nav className="flex items-center gap-6" aria-label="Main">
-          <Link
-            to="/about"
-            className="text-sm font-bold text-body transition-colors hover:text-muted"
-          >
-            About this site
+      <nav
+        className="mx-auto flex w-full max-w-[78rem] items-center justify-between px-5 py-4 sm:px-8"
+        aria-label="Main"
+      >
+        <div className="flex items-center gap-6">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-lg font-bold leading-none text-body">
+              Choose your club
+            </span>
           </Link>
           <LeaguesInfoMenu />
-        </nav>
-      </div>
+        </div>
+
+        <Link
+          to="/about"
+          className="text-sm font-bold text-body transition-colors hover:text-muted"
+        >
+          About this site
+        </Link>
+      </nav>
     </header>
   );
 }
