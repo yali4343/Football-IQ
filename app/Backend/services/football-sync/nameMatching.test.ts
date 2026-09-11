@@ -62,9 +62,45 @@ describe("normalizeClubName", () => {
   });
 
   it("strips a year-like numeric token", () => {
-    // "TSG 1899 Hoffenheim" — 1899 is dropped as a standalone numeric
-    // token even though it's 4 digits, not just 2.
-    expect(normalizeClubName("TSG 1899 Hoffenheim")).toBe("tsg hoffenheim");
+    // "1899 Hoffenheim" — 1899 is dropped as a standalone numeric token
+    // even though it's 4 digits, not just 2. "TSG" is a separate
+    // club-type token, covered below.
+    expect(normalizeClubName("1899 Hoffenheim")).toBe("hoffenheim");
+  });
+
+  it("strips the German 'TSG' club-type token", () => {
+    // TSG 1899 Hoffenheim vs API-Football's "Hoffenheim" — public naming,
+    // not yet confirmed live (see CLUB_SUFFIX_TOKENS comment).
+    expect(normalizeClubName("TSG Hoffenheim")).toBe(
+      normalizeClubName("Hoffenheim"),
+    );
+  });
+
+  it("strips the German 'SV' club-type token", () => {
+    // SV Werder Bremen vs API-Football's "Werder Bremen".
+    expect(normalizeClubName("SV Werder Bremen")).toBe(
+      normalizeClubName("Werder Bremen"),
+    );
+  });
+
+  it("strips the Spanish 'Real'/'Club'/'de' tokens", () => {
+    // Club Atlético de Madrid vs API-Football's "Atletico Madrid", and
+    // Real Racing Club de Santander vs "Racing Santander".
+    expect(normalizeClubName("Club Atlético de Madrid")).toBe(
+      normalizeClubName("Atletico Madrid"),
+    );
+    expect(normalizeClubName("Real Racing Club de Santander")).toBe(
+      normalizeClubName("Racing Santander"),
+    );
+  });
+
+  it("strips the 'RC' and 'UD' club-type tokens", () => {
+    // RC Deportivo La Coruña vs API-Football's "Deportivo La Coruna", and
+    // Levante UD vs "Levante".
+    expect(normalizeClubName("RC Deportivo La Coruña")).toBe(
+      normalizeClubName("Deportivo La Coruna"),
+    );
+    expect(normalizeClubName("Levante UD")).toBe(normalizeClubName("Levante"));
   });
 
   it("strips a two-digit founding-year token", () => {
@@ -79,7 +115,9 @@ describe("normalizeClubName", () => {
   });
 
   it("lowercases and collapses whitespace", () => {
-    expect(normalizeClubName("  Real   Madrid  ")).toBe("real madrid");
+    expect(normalizeClubName("  Manchester   United  ")).toBe(
+      "manchester united",
+    );
   });
 
   it("maps Brighton & Hove Albion to API-Football's short brand name", () => {

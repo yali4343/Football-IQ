@@ -13,7 +13,31 @@ export function slugifyLeagueName(name: string): string {
 // search (US Lecce -> "Lecce", US Sassuolo Calcio -> "Sassuolo") — Italian
 // club-type descriptors that, like fc/afc/cf/ac, aren't part of the club's
 // distinguishing identity on API-Football's side.
-const CLUB_SUFFIX_TOKENS = ["fc", "afc", "cf", "ac", "us", "calcio"];
+//
+// "real"/"club"/"de"/"rc"/"sv"/"tsg"/"ud" cover the same pattern for La Liga
+// and Bundesliga club-type descriptors and connectors (Club Atlético de
+// Madrid -> "Atletico Madrid", Real Racing Club de Santander -> "Racing
+// Santander", RC Deportivo La Coruña -> "Deportivo La Coruna", SV Werder
+// Bremen -> "Werder Bremen", TSG 1899 Hoffenheim -> "Hoffenheim", Levante UD
+// -> "Levante") — based on API-Football's well-known public naming, not yet
+// confirmed live the way the Italian tokens above were (today's daily
+// request quota was already spent); worth checking against the next
+// scheduled sync's `unmapped:` output.
+const CLUB_SUFFIX_TOKENS = [
+  "fc",
+  "afc",
+  "cf",
+  "ac",
+  "us",
+  "calcio",
+  "real",
+  "club",
+  "de",
+  "rc",
+  "sv",
+  "tsg",
+  "ud",
+];
 
 // API-Football uses a short brand name instead of the full official name
 // for these clubs — verified live against /teams, not derivable by any
