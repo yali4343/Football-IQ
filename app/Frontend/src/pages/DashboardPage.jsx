@@ -9,6 +9,7 @@ import { PreviewBlock } from "../components/PreviewBlock.jsx";
 import { Spinner } from "../components/Spinner.jsx";
 import { PositionGroup } from "../components/PositionGroup.jsx";
 import { ClubCrest } from "../components/ClubCrest.jsx";
+import { ClubDescription } from "../components/ClubDescription.jsx";
 import { PlayerProfileModal } from "../components/PlayerProfileModal.jsx";
 import { ClubAnthemPlayer } from "../components/ClubAnthemPlayer.jsx";
 import { getClubAnthemVideoId } from "../clubAnthems.js";
@@ -221,6 +222,7 @@ export function DashboardPage() {
                     </option>
                   ))}
                 </select>
+                {selectedClub && <ClubDescription clubId={selectedClub.id} />}
                 {!selectedLeague && (
                   <p
                     id="club-select-help"
