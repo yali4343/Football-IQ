@@ -37,19 +37,12 @@ function syncer(
 }
 
 function theSportsDbClient(
-  imageByVenue: Record<string, string | null | Error>,
+  imageByTeamName: Record<string, string | null | Error>,
   isRateLimited: () => boolean = () => false,
-  imageByTeamName: Record<string, string | null | Error> = {},
+  imageByVenue: Record<string, string | null | Error> = {},
 ): TheSportsDbClient {
   return {
     isRateLimited,
-    findVenueImageUrl: vi.fn().mockImplementation((venueName: string) => {
-      const result = imageByVenue[venueName];
-      if (result instanceof Error) {
-        return Promise.reject(result);
-      }
-      return Promise.resolve(result ?? null);
-    }),
     findVenueImageUrlByTeamName: vi
       .fn()
       .mockImplementation((teamName: string) => {
@@ -59,16 +52,23 @@ function theSportsDbClient(
         }
         return Promise.resolve(result ?? null);
       }),
+    findVenueImageUrl: vi.fn().mockImplementation((venueName: string) => {
+      const result = imageByVenue[venueName];
+      if (result instanceof Error) {
+        return Promise.reject(result);
+      }
+      return Promise.resolve(result ?? null);
+    }),
   };
 }
 
 const club: ClubFixture = { id: 10, name: "Leeds United", stadium: "Elland Road" };
 
 describe("StadiumImageSyncer", () => {
-  it("persists the image when the venue matches", async () => {
+  it("persists the image found via the club's own team record", async () => {
     const prisma = createMockPrisma([club]);
     const client = theSportsDbClient({
-      "Elland Road": "https://example.com/elland-road.jpg",
+      "leeds united": "https://example.com/elland-road.jpg",
     });
 
     const result = await syncer(prisma, client).syncLeague(
@@ -86,6 +86,10 @@ describe("StadiumImageSyncer", () => {
         stadiumImageUrl: null,
       },
     });
+    expect(client.findVenueImageUrlByTeamName).toHaveBeenCalledWith(
+      "leeds united",
+    );
+    expect(client.findVenueImageUrl).not.toHaveBeenCalled();
     expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: 10 },
       data: { stadiumImageUrl: "https://example.com/elland-road.jpg" },
@@ -97,9 +101,13 @@ describe("StadiumImageSyncer", () => {
     });
   });
 
-  it("records a club without failing the sync when there is no matching venue", async () => {
+  it("records a club without failing the sync when neither lookup matches", async () => {
     const prisma = createMockPrisma([club]);
-    const client = theSportsDbClient({ "Elland Road": null });
+    const client = theSportsDbClient(
+      { "leeds united": null },
+      () => false,
+      { "Elland Road": null },
+    );
 
     const result = await syncer(prisma, client).syncLeague(
       league,
@@ -119,7 +127,7 @@ describe("StadiumImageSyncer", () => {
   it("treats a provider error the same as no match, without throwing", async () => {
     const prisma = createMockPrisma([club]);
     const client = theSportsDbClient({
-      "Elland Road": new Error("TheSportsDB request failed"),
+      "leeds united": new Error("TheSportsDB request failed"),
     });
 
     const result = await syncer(prisma, client).syncLeague(
@@ -136,17 +144,17 @@ describe("StadiumImageSyncer", () => {
     });
   });
 
-  it("falls back to a team-name lookup when the venue name doesn't match", async () => {
-    const barca: ClubFixture = {
+  it("falls back to a venue-name search when TheSportsDB has no team record for the club", async () => {
+    const nonLeagueClub: ClubFixture = {
       id: 20,
-      name: "FC Barcelona",
-      stadium: "Camp Nou",
+      name: "Some Ground FC",
+      stadium: "Some Ground",
     };
-    const prisma = createMockPrisma([barca]);
+    const prisma = createMockPrisma([nonLeagueClub]);
     const client = theSportsDbClient(
-      { "Camp Nou": null },
+      { "some ground": null },
       () => false,
-      { barcelona: "https://example.com/spotify-camp-nou.jpg" },
+      { "Some Ground": "https://example.com/some-ground.jpg" },
     );
 
     const result = await syncer(prisma, client).syncLeague(
@@ -156,17 +164,13 @@ describe("StadiumImageSyncer", () => {
       undefined,
     );
 
-    expect(client.findVenueImageUrl).toHaveBeenCalledWith("Camp Nou");
-    // The club-type descriptor ("FC") is stripped before the team-name
-    // search — verified live: TheSportsDB's search isn't sport-scoped, and
-    // "FC Barcelona" collides with an unrelated rugby team of that exact
-    // name, while "barcelona" correctly matches the football club.
     expect(client.findVenueImageUrlByTeamName).toHaveBeenCalledWith(
-      "barcelona",
+      "some ground",
     );
+    expect(client.findVenueImageUrl).toHaveBeenCalledWith("Some Ground");
     expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: 20 },
-      data: { stadiumImageUrl: "https://example.com/spotify-camp-nou.jpg" },
+      data: { stadiumImageUrl: "https://example.com/some-ground.jpg" },
     });
     expect(result).toEqual({
       updated: 1,
@@ -178,7 +182,7 @@ describe("StadiumImageSyncer", () => {
   it("does not write when dryRun is true", async () => {
     const prisma = createMockPrisma([club]);
     const client = theSportsDbClient({
-      "Elland Road": "https://example.com/elland-road.jpg",
+      "leeds united": "https://example.com/elland-road.jpg",
     });
 
     const result = await syncer(prisma, client).syncLeague(
@@ -209,11 +213,8 @@ describe("StadiumImageSyncer", () => {
     };
     const prisma = createMockPrisma([club, secondClub, thirdClub]);
     let rateLimited = false;
-    const client = theSportsDbClient(
-      { "Elland Road": null },
-      () => rateLimited,
-    );
-    client.findVenueImageUrl = vi.fn().mockImplementation(() => {
+    const client = theSportsDbClient({}, () => rateLimited);
+    client.findVenueImageUrlByTeamName = vi.fn().mockImplementation(() => {
       rateLimited = true;
       return Promise.resolve(null);
     });
@@ -225,8 +226,8 @@ describe("StadiumImageSyncer", () => {
       undefined,
     );
 
-    expect(client.findVenueImageUrl).toHaveBeenCalledTimes(1);
-    expect(client.findVenueImageUrlByTeamName).not.toHaveBeenCalled();
+    expect(client.findVenueImageUrlByTeamName).toHaveBeenCalledTimes(1);
+    expect(client.findVenueImageUrl).not.toHaveBeenCalled();
     expect(result).toEqual({
       updated: 0,
       clubsWithoutStadiumImage: [],
@@ -261,8 +262,10 @@ describe("StadiumImageSyncer", () => {
       "leeds-united",
     );
 
-    expect(client.findVenueImageUrl).toHaveBeenCalledTimes(1);
-    expect(client.findVenueImageUrl).toHaveBeenCalledWith("Elland Road");
+    expect(client.findVenueImageUrlByTeamName).toHaveBeenCalledTimes(1);
+    expect(client.findVenueImageUrlByTeamName).toHaveBeenCalledWith(
+      "leeds united",
+    );
     expect(result.clubsWithoutStadiumImage).toEqual(["Leeds United"]);
   });
 });

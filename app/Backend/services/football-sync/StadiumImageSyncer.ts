@@ -9,14 +9,18 @@ interface StadiumImageClub {
   stadium: string | null;
 }
 
-// Enriches each club with a stadium photo from TheSportsDB, matched by the
-// existing stadium name, falling back to a team-name lookup when the venue
-// name itself doesn't match (outdated names, missing sponsor prefixes —
-// verified live: "Camp Nou" misses directly but resolves via Barcelona's
-// own team record). Mirrors ClubMapper's role for a third provider: skip
-// clubs that already have an image unless --force, and never fail the
-// whole sync on a missing venue/image or a provider error — a lookup that
-// comes back empty or throws is recorded, not raised further.
+// Enriches each club with a stadium photo from TheSportsDB, matched via the
+// club's own team record first (authoritative — TheSportsDB links a team to
+// its current venue directly), falling back to a free-text venue-name search
+// only when TheSportsDB has no team record for the club at all. A raw
+// venue-name search is unreliable on its own — verified live: it matched
+// Juventus's "Allianz Stadium" to an unrelated Sydney venue of the same
+// sponsored name, and matched Werder Bremen's "Weserstadion" to a stale
+// venue record with no photo, while both clubs' own team records resolved
+// correctly. Mirrors ClubMapper's role for a third provider: skip clubs
+// that already have an image unless --force, and never fail the whole sync
+// on a missing venue/image or a provider error — a lookup that comes back
+// empty or throws is recorded, not raised further.
 export class StadiumImageSyncer {
   constructor(
     private prisma: PrismaClient,
@@ -86,22 +90,24 @@ export class StadiumImageSyncer {
       return null;
     }
 
-    const byVenueName = await this.tryLookup(() =>
-      this.theSportsDbClient.findVenueImageUrl(club.stadium as string),
-    );
-
-    if (byVenueName || this.theSportsDbClient.isRateLimited()) {
-      return byVenueName;
-    }
-
     // Strip club-type descriptors (FC/AFC/CF/etc.) before searching by
     // name — verified live: "FC Barcelona"/"Hull City AFC"/"FC Schalke 04"
     // all miss or match the wrong (non-soccer) team on TheSportsDB, while
     // the normalized "Barcelona"/"Hull City"/"Schalke" match correctly.
-    return this.tryLookup(() =>
+    const byTeamName = await this.tryLookup(() =>
       this.theSportsDbClient.findVenueImageUrlByTeamName(
         normalizeClubName(club.name),
       ),
+    );
+
+    if (byTeamName || this.theSportsDbClient.isRateLimited()) {
+      return byTeamName;
+    }
+
+    // Only reached when TheSportsDB has no team record for the club at
+    // all — fall back to a free-text search on the stored venue name.
+    return this.tryLookup(() =>
+      this.theSportsDbClient.findVenueImageUrl(club.stadium as string),
     );
   }
 

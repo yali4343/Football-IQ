@@ -35,6 +35,15 @@ export class HttpTheSportsDbClient implements TheSportsDbClient {
     return this.rateLimited;
   }
 
+  // Fallback for when TheSportsDB has no team record for the club at all —
+  // a free-text search over venue names, unscoped to sport or country.
+  // Verified live: searching "Allianz Stadium" (Juventus's stadium) matches
+  // "Allianz Stadium Sydney" (an unrelated Australian rugby/football venue
+  // that happens to share a sponsor name) ahead of Juventus's real Turin
+  // venue; searching "Weserstadion" matches an older venue record with no
+  // fanart image, while Werder Bremen's own team record points to a newer
+  // one that has one. `findVenueImageUrlByTeamName` avoids both failure
+  // modes and should be tried first.
   async findVenueImageUrl(venueName: string): Promise<string | null> {
     const body = await this.request<TheSportsDbVenuesResponse>(
       `searchvenues.php?v=${encodeURIComponent(venueName)}`,
@@ -43,11 +52,10 @@ export class HttpTheSportsDbClient implements TheSportsDbClient {
     return this.pickImage(body.venues?.[0]);
   }
 
-  // Fallback for when the stored venue name doesn't match TheSportsDB's
-  // (outdated name, missing sponsor prefix, etc — verified live: "Camp Nou"
-  // misses, but the club's own team record on TheSportsDB carries the
-  // current "Spotify Camp Nou" venue). Looks up the team by name, then its
-  // venue by id, rather than guessing at name variants ourselves.
+  // Looks up the team by name, then its current venue by id, rather than
+  // guessing at venue-name variants ourselves — verified live: "Camp Nou"
+  // itself doesn't match any venue, but Barcelona's own team record carries
+  // the current "Spotify Camp Nou" venue.
   async findVenueImageUrlByTeamName(teamName: string): Promise<string | null> {
     const teamsBody = await this.request<TheSportsDbTeamsResponse>(
       `searchteams.php?t=${encodeURIComponent(teamName)}`,
