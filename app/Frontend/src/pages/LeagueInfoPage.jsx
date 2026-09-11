@@ -3,14 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getLeagueStats } from "../api/leaguesAPI.js";
 import { Spinner } from "../components/Spinner.jsx";
 import { StatusMessage } from "../components/StatusMessage.jsx";
-
-function formatForeignPercentage(stats) {
-  if (stats.foreignPlayerPercentage === null) {
-    return "Not enough nationality data yet";
-  }
-
-  return `${stats.foreignPlayerPercentage}%`;
-}
+import { LeagueStatistics } from "../components/LeagueStatistics.jsx";
 
 export function LeagueInfoPage() {
   const { leagueSlug } = useParams();
@@ -64,22 +57,7 @@ export function LeagueInfoPage() {
               {stats.description}
             </p>
 
-            <dl className="mt-8 max-w-sm space-y-2 text-sm">
-              <div className="flex justify-between gap-4">
-                <dt className="text-subtle">Average age</dt>
-                <dd className="text-body">
-                  {stats.averageAge !== null
-                    ? `${stats.averageAge} years`
-                    : "Not enough age data yet"}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-subtle">Foreign players</dt>
-                <dd className="text-right text-body">
-                  {formatForeignPercentage(stats)}
-                </dd>
-              </div>
-            </dl>
+            <LeagueStatistics stats={stats} />
           </>
         )}
       </div>
