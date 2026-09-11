@@ -97,7 +97,7 @@ export function Toolbar() {
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">
             <span className="text-lg font-bold leading-none text-body">
-              Choose your club
+              Dashboard
             </span>
           </Link>
           <LeaguesInfoMenu />
