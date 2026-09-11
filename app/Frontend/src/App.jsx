@@ -10,6 +10,7 @@ import { PositionGroup } from "./components/PositionGroup.jsx";
 import { ClubCrest } from "./components/ClubCrest.jsx";
 import { PlayerProfileModal } from "./components/PlayerProfileModal.jsx";
 import { ClubAnthemPlayer } from "./components/ClubAnthemPlayer.jsx";
+import { Footer } from "./components/Footer.jsx";
 import { getClubAnthemVideoId } from "./clubAnthems.js";
 
 function DashboardStatusScreen({ busy = false, children }) {
@@ -58,26 +59,32 @@ function App() {
 
   if (isLoading) {
     return (
-      <DashboardStatusScreen busy>
-        <StatusMessage>
-          <Spinner className="mr-2" />
-          Loading clubs...
-        </StatusMessage>
-      </DashboardStatusScreen>
+      <>
+        <DashboardStatusScreen busy>
+          <StatusMessage>
+            <Spinner className="mr-2" />
+            Loading clubs...
+          </StatusMessage>
+        </DashboardStatusScreen>
+        <Footer />
+      </>
     );
   }
 
   if (error) {
     return (
-      <DashboardStatusScreen>
-        <StatusMessage tone="error">
-          Failed to load clubs: {error.message}
-        </StatusMessage>
-      </DashboardStatusScreen>
+      <>
+        <DashboardStatusScreen>
+          <StatusMessage tone="error">
+            Failed to load clubs: {error.message}
+          </StatusMessage>
+        </DashboardStatusScreen>
+        <Footer />
+      </>
     );
   }
 
-  return (
+  const page = (
     <main className="dashboard-shell" style={dashboardStyle}>
       <div className="dashboard-frame">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
@@ -279,6 +286,13 @@ function App() {
         onClose={() => setSelectedPlayer(null)}
       />
     </main>
+  );
+
+  return (
+    <>
+      {page}
+      <Footer />
+    </>
   );
 }
 
