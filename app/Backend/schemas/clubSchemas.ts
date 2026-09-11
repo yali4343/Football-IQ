@@ -90,6 +90,18 @@ const playersResponseSchema = {
   items: playerResponseSchema,
 };
 
+const clubDescriptionResponseSchema = {
+  type: "object",
+  properties: {
+    description: {
+      type: ["string", "null"],
+      description:
+        "The club's Wikipedia intro, trimmed to a few sentences. Null if no matching Wikipedia article was found.",
+    },
+  },
+  required: ["description"],
+};
+
 // Matches AppError's response shape from server.ts's error handler.
 const errorResponseSchema = {
   type: "object",
@@ -108,5 +120,6 @@ export {
   clubsResponseSchema,
   playerResponseSchema,
   playersResponseSchema,
+  clubDescriptionResponseSchema,
   errorResponseSchema,
 };
