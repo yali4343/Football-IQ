@@ -4,13 +4,21 @@ import { HttpApiFootballClient } from "./integrations/apiFootball/HttpApiFootbal
 import { HttpFootballDataClient } from "./integrations/footballData/HttpFootballDataClient.js";
 import { HttpTheSportsDbClient } from "./integrations/theSportsDb/HttpTheSportsDbClient.js";
 import { AppLogger } from "./logging/index.js";
-import { PrismaClubService, PrismaFootballSyncService } from "./services/index.js";
+import {
+  PrismaClubService,
+  PrismaFootballSyncService,
+  PrismaLeagueService,
+} from "./services/index.js";
 
 import type { AppConfig } from "./config/appConfig.types.js";
 import type { ApiFootballClient } from "./integrations/apiFootball/ApiFootballClient.js";
 import type { FootballDataClient } from "./integrations/footballData/FootballDataClient.js";
 import type { TheSportsDbClient } from "./integrations/theSportsDb/TheSportsDbClient.js";
-import type { ClubService, FootballSyncService } from "./services/index.js";
+import type {
+  ClubService,
+  FootballSyncService,
+  LeagueService,
+} from "./services/index.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
 
 const appConfig: AppConfig = {
@@ -46,6 +54,16 @@ container.register<ClubService>(
   "ClubService",
   {
     useClass: PrismaClubService,
+  },
+  {
+    lifecycle: Lifecycle.Singleton,
+  },
+);
+
+container.register<LeagueService>(
+  "LeagueService",
+  {
+    useClass: PrismaLeagueService,
   },
   {
     lifecycle: Lifecycle.Singleton,

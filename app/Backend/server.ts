@@ -6,8 +6,9 @@ import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import cors from "@fastify/cors";
 import clubRoutes from "./routes/clubRoutes.js";
+import leagueRoutes from "./routes/leagueRoutes.js";
 import { container } from "./container.js";
-import type { ClubService } from "./services/index.js";
+import type { ClubService, LeagueService } from "./services/index.js";
 
 // pino-pretty spawns a worker thread and resolves itself dynamically by
 // string name at runtime — bundled serverless platforms (Vercel included)
@@ -31,6 +32,7 @@ const fastify = Fastify({
 });
 
 const clubService = container.resolve<ClubService>("ClubService");
+const leagueService = container.resolve<LeagueService>("LeagueService");
 
 fastify.setErrorHandler((error, request, reply) => {
   if (error instanceof AppError) {
@@ -94,6 +96,11 @@ await fastify.register(swaggerUi, {
 fastify.register(clubRoutes, {
   prefix: "/clubs",
   clubService,
+});
+
+fastify.register(leagueRoutes, {
+  prefix: "/leagues",
+  leagueService,
 });
 
 const port = process.env.PORT || 3000;
