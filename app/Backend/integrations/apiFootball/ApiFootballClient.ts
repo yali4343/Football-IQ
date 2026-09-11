@@ -2,6 +2,7 @@ export interface ApiFootballTeam {
   id: number;
   name: string;
   code: string | null;
+  country: string | null;
 }
 
 export interface ApiFootballSquadPlayer {
