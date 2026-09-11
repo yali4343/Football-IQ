@@ -21,7 +21,7 @@ function ChevronIcon(props) {
   );
 }
 
-function StatisticsMenu({ onSelectLeague }) {
+function LeaguesInfoMenu() {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -60,29 +60,26 @@ function StatisticsMenu({ onSelectLeague }) {
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
-        Statistics
+        Leagues Info
         <ChevronIcon className="h-4 w-4" />
       </button>
 
       {open && (
         <div
           role="menu"
-          aria-label="Statistics"
+          aria-label="Leagues Info"
           className="absolute right-0 z-10 mt-2 w-44 rounded-(--radius-panel) border border-border bg-(--color-surface) py-1 shadow-lg"
         >
           {LEAGUES.map((league) => (
-            <button
+            <Link
               key={league}
-              type="button"
+              to={`/leagues/${leagueToSlug(league)}/info`}
               role="menuitem"
-              className="block w-full px-4 py-2 text-left text-sm text-body hover:bg-(--color-border) hover:text-body"
-              onClick={() => {
-                setOpen(false);
-                onSelectLeague(leagueToSlug(league));
-              }}
+              className="block px-4 py-2 text-sm text-body hover:bg-(--color-border) hover:text-body"
+              onClick={() => setOpen(false)}
             >
               {league}
-            </button>
+            </Link>
           ))}
         </div>
       )}
@@ -90,7 +87,7 @@ function StatisticsMenu({ onSelectLeague }) {
   );
 }
 
-export function Toolbar({ onSelectLeague }) {
+export function Toolbar() {
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex w-full max-w-[78rem] items-center justify-between px-5 py-4 sm:px-8">
@@ -107,7 +104,7 @@ export function Toolbar({ onSelectLeague }) {
           >
             About this site
           </Link>
-          <StatisticsMenu onSelectLeague={onSelectLeague} />
+          <LeaguesInfoMenu />
         </nav>
       </div>
     </header>

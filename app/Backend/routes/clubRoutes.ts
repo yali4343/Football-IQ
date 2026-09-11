@@ -8,6 +8,7 @@ import {
   nullableClubResponseSchema,
   clubsResponseSchema,
   playersResponseSchema,
+  clubDescriptionResponseSchema,
   errorResponseSchema,
 } from "../schemas/clubSchemas.js";
 import type { ClubService } from "../services/index.js";
@@ -180,6 +181,34 @@ async function clubRoutes(
       const players = await clubService.getClubPlayers(clubId);
 
       return reply.code(HTTP_STATUS.OK).send(players);
+    },
+  );
+
+  fastify.get(
+    "/:id/description",
+    {
+      schema: {
+        summary: "Get club description",
+        description:
+          "Returns a short description of one supported football club, sourced from Wikipedia",
+        tags: ["Clubs"],
+        response: {
+          [HTTP_STATUS.OK]: clubDescriptionResponseSchema,
+          [HTTP_STATUS.NOT_FOUND]: errorResponseSchema,
+          [HTTP_STATUS.UNPROCESSABLE_ENTITY]: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const clubId = parseClubIdOrThrow(request.params);
+
+      const club = await clubService.getClubById(clubId);
+
+      assertClubFound(club);
+
+      const description = await clubService.getClubDescription(clubId);
+
+      return reply.code(HTTP_STATUS.OK).send({ description });
     },
   );
 }
