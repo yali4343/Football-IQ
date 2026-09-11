@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { Toolbar } from "./components/Toolbar.jsx";
 import { Footer } from "./components/Footer.jsx";
 import { DashboardPage } from "./pages/DashboardPage.jsx";
 import { AboutPage } from "./pages/AboutPage.jsx";
@@ -6,6 +7,7 @@ import { AboutPage } from "./pages/AboutPage.jsx";
 function App() {
   return (
     <>
+      <Toolbar />
       <Routes>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/leagues/:leagueSlug" element={<DashboardPage />} />
