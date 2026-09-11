@@ -55,7 +55,7 @@ describe("ClubMapper", () => {
     };
     const prisma = createMockPrisma([club]);
     const client = alwaysAvailableClient([
-      { id: 42, name: "Arsenal", code: "ARS" },
+      { id: 42, name: "Arsenal", code: "ARS", country: "England" },
     ]);
 
     const result = await mapper(prisma, client).mapLeagueClubs(
@@ -80,7 +80,7 @@ describe("ClubMapper", () => {
     };
     const prisma = createMockPrisma([club]);
     const client = alwaysAvailableClient([
-      { id: 42, name: "Arsenal", code: "DIFFERENT" },
+      { id: 42, name: "Arsenal", code: "DIFFERENT", country: "England" },
     ]);
 
     const result = await mapper(prisma, client).mapLeagueClubs(
@@ -108,8 +108,8 @@ describe("ClubMapper", () => {
     // (e.g. a reserve/duplicate listing), and the search fallback is
     // equally ambiguous — no unique match should ever be picked.
     const ambiguous: ApiFootballTeam[] = [
-      { id: 42, name: "Arsenal", code: "ARS" },
-      { id: 43, name: "Arsenal", code: "ARS" },
+      { id: 42, name: "Arsenal", code: "ARS", country: "England" },
+      { id: 43, name: "Arsenal", code: "ARS", country: "England" },
     ];
     const client = alwaysAvailableClient(ambiguous, ambiguous);
 
@@ -124,6 +124,39 @@ describe("ClubMapper", () => {
     expect(result).toMatchObject({ mapped: 0, unmapped: ["Arsenal FC"] });
   });
 
+  it("uses the club's country to disambiguate a same-named club from another nation", async () => {
+    // Real case: Levante UD (Spain) vs. API-Football's unrelated homonym
+    // "Levante" (Greece) — a plain name/code match is ambiguous across
+    // both, but the club's own area (synced from football-data.org)
+    // narrows it down to the right one.
+    const club = {
+      id: 5,
+      name: "Levante UD",
+      footballDataCode: "LEV",
+      apiFootballId: null,
+      area: { name: "Spain" },
+    };
+    const prisma = createMockPrisma([club]);
+    const searchResults: ApiFootballTeam[] = [
+      { id: 539, name: "Levante", code: "LEV", country: "Spain" },
+      { id: 9591, name: "Levante II", code: "LEV", country: "Spain" },
+      { id: 28408, name: "Levante", code: null, country: "Greece" },
+    ];
+    const client = alwaysAvailableClient([], searchResults);
+
+    const result = await mapper(prisma, client).mapLeagueClubs(
+      league,
+      false,
+      false,
+    );
+
+    expect(prisma.club.update).toHaveBeenCalledWith({
+      where: { id: 5 },
+      data: { apiFootballId: 539 },
+    });
+    expect(result).toMatchObject({ mapped: 1, unmapped: [] });
+  });
+
   it("never re-queries already-mapped clubs unless --force", async () => {
     const prisma = createMockPrisma([]);
     const client = alwaysAvailableClient([]);
@@ -132,6 +165,7 @@ describe("ClubMapper", () => {
 
     expect(prisma.club.findMany).toHaveBeenCalledWith({
       where: { leagueId: 1, isActive: true, apiFootballId: null },
+      include: { area: true },
     });
   });
 
@@ -143,6 +177,7 @@ describe("ClubMapper", () => {
 
     expect(prisma.club.findMany).toHaveBeenCalledWith({
       where: { leagueId: 1, isActive: true },
+      include: { area: true },
     });
   });
 
@@ -185,7 +220,7 @@ describe("ClubMapper", () => {
     };
     const prisma = createMockPrisma([club]);
     const client = alwaysAvailableClient([
-      { id: 42, name: "Arsenal", code: "ARS" },
+      { id: 42, name: "Arsenal", code: "ARS", country: "England" },
     ]);
 
     const result = await mapper(prisma, client).mapLeagueClubs(

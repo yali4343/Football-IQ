@@ -11,6 +11,7 @@ interface MappableClub {
   name: string;
   footballDataCode: string | null;
   apiFootballId: number | null;
+  area: { name: string } | null;
 }
 
 // API-Football's free plan only allows recent-but-not-current seasons on
@@ -42,6 +43,7 @@ export class ClubMapper {
         isActive: true,
         ...(force ? {} : { apiFootballId: null }),
       },
+      include: { area: true },
     });
 
     let mapped = 0;
@@ -139,7 +141,32 @@ export class ClubMapper {
     return undefined;
   }
 
+  // A club's own nation (synced from football-data.org's `area`) narrows
+  // out same-named clubs from other countries — e.g. Levante UD (Spain)
+  // vs. API-Football's unrelated homonym "Levante" (Greece), which
+  // otherwise makes the plain name/code match ambiguous. Falls back to the
+  // unfiltered candidate list whenever narrowing doesn't yield a match, so
+  // this only ever adds precision — it never turns a previously resolvable
+  // case into a miss (e.g. a country-name mismatch between providers).
   private pickUniqueMatch(
+    candidates: ApiFootballTeam[],
+    club: MappableClub,
+  ): ApiFootballTeam | undefined {
+    if (club.area) {
+      const sameCountry = candidates.filter(
+        (team) => team.country === club.area?.name,
+      );
+      const narrowed = this.pickFromCandidates(sameCountry, club);
+
+      if (narrowed) {
+        return narrowed;
+      }
+    }
+
+    return this.pickFromCandidates(candidates, club);
+  }
+
+  private pickFromCandidates(
     candidates: ApiFootballTeam[],
     club: MappableClub,
   ): ApiFootballTeam | undefined {

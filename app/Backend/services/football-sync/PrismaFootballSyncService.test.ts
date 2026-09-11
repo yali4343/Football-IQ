@@ -194,7 +194,7 @@ describe("PrismaFootballSyncService (orchestration)", () => {
     );
     const apiFootballClient = createMockApiFootballClient({
       requestsUsed: 37,
-      directory: [{ id: 42, name: "Arsenal", code: "ARS" }],
+      directory: [{ id: 42, name: "Arsenal", code: "ARS", country: "England" }],
     });
 
     const summary = await service(

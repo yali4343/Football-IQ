@@ -19,7 +19,12 @@ const DEFAULT_SAFETY_MARGIN = 10;
 interface ApiFootballTeamsResponse {
   errors: unknown;
   response: Array<{
-    team: { id: number; name: string; code: string | null };
+    team: {
+      id: number;
+      name: string;
+      code: string | null;
+      country: string | null;
+    };
   }>;
 }
 
@@ -92,6 +97,7 @@ export class HttpApiFootballClient implements ApiFootballClient {
       id: entry.team.id,
       name: entry.team.name,
       code: entry.team.code,
+      country: entry.team.country,
     }));
   }
 
@@ -104,6 +110,7 @@ export class HttpApiFootballClient implements ApiFootballClient {
       id: entry.team.id,
       name: entry.team.name,
       code: entry.team.code,
+      country: entry.team.country,
     }));
   }
 
