@@ -13,6 +13,18 @@ describe("computeLeaguePlayerStats", () => {
     expect(result.totalActivePlayers).toBe(3);
   });
 
+  it("excludes an implausible age (a sync-side data bug, not a real age) from the average", () => {
+    // Real case: two Premier League players currently carry age: 2025 from
+    // API-Football's squad sync.
+    const result = computeLeaguePlayerStats([
+      { age: 24, nationality: null, club: null },
+      { age: 26, nationality: null, club: null },
+      { age: 2025, nationality: null, club: null },
+    ]);
+
+    expect(result.averageAge).toBe(25);
+  });
+
   it("returns a null average age when no player has a known age", () => {
     const result = computeLeaguePlayerStats([
       { age: null, nationality: null, club: null },

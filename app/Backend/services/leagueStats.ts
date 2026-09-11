@@ -11,6 +11,21 @@ export interface LeaguePlayerStats {
   foreignPlayerPercentage: number | null;
 }
 
+// Verified live against the production database: two Premier League
+// players currently carry age: 2025 from API-Football (a sync-side data
+// bug, not a real age — see the "B. Slade"/"Z. Blake" rows on Fulham/
+// Nottingham Forest). A single bad value like that would otherwise drag a
+// whole league's average up by several years, so ages outside a plausible
+// professional-footballer range are treated as unknown here, the same as
+// null — this doesn't fix the underlying sync data, only stops it from
+// corrupting the stat.
+const MIN_PLAUSIBLE_AGE = 14;
+const MAX_PLAUSIBLE_AGE = 55;
+
+function isPlausibleAge(age: number): boolean {
+  return age >= MIN_PLAUSIBLE_AGE && age <= MAX_PLAUSIBLE_AGE;
+}
+
 // A player counts as "foreign" when their nationality differs from their
 // own club's country (not a single assumed league nationality — mirrors how
 // ClubMapper already treats a club's own area as the source of truth). Only
@@ -25,7 +40,7 @@ export function computeLeaguePlayerStats(
 ): LeaguePlayerStats {
   const ages = players.filter(
     (player): player is LeaguePlayerSample & { age: number } =>
-      player.age !== null,
+      player.age !== null && isPlausibleAge(player.age),
   );
   const averageAge =
     ages.length > 0
