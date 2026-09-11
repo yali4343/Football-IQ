@@ -3,6 +3,7 @@ import { prisma } from "./db/prismaClient.js";
 import { HttpApiFootballClient } from "./integrations/apiFootball/HttpApiFootballClient.js";
 import { HttpFootballDataClient } from "./integrations/footballData/HttpFootballDataClient.js";
 import { HttpTheSportsDbClient } from "./integrations/theSportsDb/HttpTheSportsDbClient.js";
+import { HttpWikipediaClient } from "./integrations/wikipedia/HttpWikipediaClient.js";
 import { AppLogger } from "./logging/index.js";
 import {
   PrismaClubService,
@@ -14,6 +15,7 @@ import type { AppConfig } from "./config/appConfig.types.js";
 import type { ApiFootballClient } from "./integrations/apiFootball/ApiFootballClient.js";
 import type { FootballDataClient } from "./integrations/footballData/FootballDataClient.js";
 import type { TheSportsDbClient } from "./integrations/theSportsDb/TheSportsDbClient.js";
+import type { WikipediaClient } from "./integrations/wikipedia/WikipediaClient.js";
 import type {
   ClubService,
   FootballSyncService,
@@ -94,6 +96,16 @@ container.register<TheSportsDbClient>(
   "TheSportsDbClient",
   {
     useClass: HttpTheSportsDbClient,
+  },
+  {
+    lifecycle: Lifecycle.Singleton,
+  },
+);
+
+container.register<WikipediaClient>(
+  "WikipediaClient",
+  {
+    useClass: HttpWikipediaClient,
   },
   {
     lifecycle: Lifecycle.Singleton,
