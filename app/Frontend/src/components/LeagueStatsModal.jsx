@@ -9,7 +9,7 @@ function formatForeignPercentage(stats) {
     return "Not enough nationality data yet";
   }
 
-  return `${stats.foreignPlayerPercentage}% (based on ${stats.playersWithKnownNationality} of ${stats.totalActivePlayers} players with known nationality)`;
+  return `${stats.foreignPlayerPercentage}%`;
 }
 
 export function LeagueStatsModal({ leagueSlug, onClose }) {

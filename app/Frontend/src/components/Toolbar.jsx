@@ -55,7 +55,7 @@ function StatisticsMenu({ onSelectLeague }) {
     <div className="relative" ref={containerRef}>
       <button
         type="button"
-        className="flex items-center gap-1 text-sm font-semibold text-body transition-colors hover:text-muted"
+        className="flex items-center gap-1 text-sm font-bold text-body transition-colors hover:text-muted"
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -95,21 +95,15 @@ export function Toolbar({ onSelectLeague }) {
     <header className="border-b border-border">
       <div className="mx-auto flex w-full max-w-[78rem] items-center justify-between px-5 py-4 sm:px-8">
         <Link to="/" className="flex items-center gap-2">
-          <img
-            src="/footballIQ-logo.png"
-            alt=""
-            className="h-8 w-8"
-            aria-hidden="true"
-          />
-          <span className="font-display text-lg leading-none text-body">
-            Football-IQ
+          <span className="text-lg font-bold leading-none text-body">
+            Choose your club
           </span>
         </Link>
 
         <nav className="flex items-center gap-6" aria-label="Main">
           <Link
             to="/about"
-            className="text-sm font-semibold text-body transition-colors hover:text-muted"
+            className="text-sm font-bold text-body transition-colors hover:text-muted"
           >
             About this site
           </Link>
