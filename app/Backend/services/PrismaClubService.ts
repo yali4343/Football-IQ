@@ -4,7 +4,11 @@ import type {
   Prisma,
   PrismaClient,
 } from "../generated/prisma/client.js";
+import type { WikipediaClient } from "../integrations/wikipedia/WikipediaClient.js";
+import { firstNSentences } from "./textExtract.js";
 import type { Club, ClubService, Player } from "./ClubService.js";
+
+const DESCRIPTION_SENTENCE_COUNT = 4;
 
 type ClubWithLeague = Prisma.ClubGetPayload<{
   include: { league: true; area: true; coach: true };
@@ -57,7 +61,10 @@ function toClubDto(club: ClubWithLeague): Club {
 export class PrismaClubService implements ClubService {
   private selectedClubId: number | null = null;
 
-  constructor(@inject("PrismaClient") private prisma: PrismaClient) {}
+  constructor(
+    @inject("PrismaClient") private prisma: PrismaClient,
+    @inject("WikipediaClient") private wikipediaClient: WikipediaClient,
+  ) {}
 
   async getAllClubs(): Promise<Club[]> {
     const clubs = await this.prisma.club.findMany({
@@ -102,5 +109,28 @@ export class PrismaClubService implements ClubService {
     });
 
     return players.map(toPlayerDto);
+  }
+
+  // Never lets a Wikipedia outage, an unresolved title, or a missing club
+  // fail the request — null degrades gracefully in the UI, mirroring how
+  // StadiumImageSyncer treats a failed provider lookup.
+  async getClubDescription(clubId: number): Promise<string | null> {
+    const club = await this.prisma.club.findUnique({
+      where: { id: clubId },
+    });
+
+    if (!club) {
+      return null;
+    }
+
+    try {
+      const extract = await this.wikipediaClient.getIntroExtract(club.name);
+
+      return extract
+        ? firstNSentences(extract, DESCRIPTION_SENTENCE_COUNT)
+        : null;
+    } catch {
+      return null;
+    }
   }
 }

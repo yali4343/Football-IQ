@@ -43,4 +43,5 @@ export interface ClubService {
   selectClub(clubId: number): Promise<Club | null>;
   getSelectedClub(): Promise<Club | null>;
   getClubPlayers(clubId: number): Promise<Player[]>;
+  getClubDescription(clubId: number): Promise<string | null>;
 }
