@@ -4,6 +4,8 @@ A full-stack football dashboard for exploring club, squad, and league data acros
 
 Pick a league, pick a club, and see its current squad, stadium, coach, and background in one place. Football-IQ is also a continuous learning project: the codebase is deliberately built and extended the way a production application would be, one real feature at a time, rather than through disposable exercises.
 
+**Live demo:** https://football-iq-frontend.onrender.com _(backend runs on Render's free tier and spins down when idle, so the first request after inactivity can take a few seconds)_
+
 ## Features
 
 - **League browser** — view a league's emblem, description, and computed statistics (average squad age, percentage of foreign players) derived from currently synced data.
