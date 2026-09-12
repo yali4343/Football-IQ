@@ -15,7 +15,7 @@ export function LeagueStatistics({ stats }) {
 
       <dl className="mt-4 space-y-1.5 text-sm">
         <div>
-          <dt className="inline text-subtle">Average age is</dt>{" "}
+          <dt className="inline text-subtle">Average age in the league: </dt>{" "}
           <dd className="inline font-semibold text-body">
             {stats.averageAge !== null
               ? `${stats.averageAge} years old`
@@ -23,7 +23,9 @@ export function LeagueStatistics({ stats }) {
           </dd>
         </div>
         <div>
-          <dt className="inline text-subtle">Foreign players are</dt>{" "}
+          <dt className="inline text-subtle">
+            Percentage of foreign players in the league:{" "}
+          </dt>{" "}
           <dd className="inline font-semibold text-body">
             {formatForeignPercentage(stats)}
           </dd>
