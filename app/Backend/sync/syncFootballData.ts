@@ -71,6 +71,19 @@ async function main() {
       `    profiles updated ${league.profilesUpdated}, skipped (quota) ${league.profilesSkippedQuota}, failed ${league.profilesFailed}`,
     );
 
+    if (league.failedProfiles.length > 0) {
+      const examples = league.failedProfiles.slice(0, 5);
+      for (const failedProfile of examples) {
+        logger.log(
+          `    FAILED profile ${failedProfile.externalApiId}: ${failedProfile.error}`,
+        );
+      }
+      const remaining = league.failedProfiles.length - examples.length;
+      if (remaining > 0) {
+        logger.log(`    ...and ${remaining} more failed profile(s)`);
+      }
+    }
+
     if (league.unmappedClubs.length > 0) {
       logger.log(`    unmapped: ${league.unmappedClubs.join(", ")}`);
     }

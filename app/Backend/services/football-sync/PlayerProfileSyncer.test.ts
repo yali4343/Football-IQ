@@ -115,6 +115,7 @@ describe("PlayerProfileSyncer", () => {
       profilesUpdated: 1,
       profilesSkippedQuota: 0,
       profilesFailed: 0,
+      failedProfiles: [],
     });
   });
 
@@ -151,10 +152,11 @@ describe("PlayerProfileSyncer", () => {
       profilesUpdated: 0,
       profilesSkippedQuota: 2,
       profilesFailed: 0,
+      failedProfiles: [],
     });
   });
 
-  it("counts a failed lookup without aborting the remaining players", async () => {
+  it("records a failed lookup's error without aborting the remaining players", async () => {
     const prisma = createMockPrisma(
       [club],
       [
@@ -190,7 +192,28 @@ describe("PlayerProfileSyncer", () => {
       profilesUpdated: 1,
       profilesSkippedQuota: 0,
       profilesFailed: 1,
+      failedProfiles: [
+        { externalApiId: 100, error: "API-Football request failed" },
+      ],
     });
+  });
+
+  it("records a distinct reason when the API returns no profile data", async () => {
+    const prisma = createMockPrisma([club], [{ id: 1, externalApiId: 100 }]);
+    const client = apiFootballClient({ 100: null });
+
+    const result = await syncer(prisma, client).syncLeague(
+      league,
+      false,
+      undefined,
+    );
+
+    expect(result.failedProfiles).toEqual([
+      {
+        externalApiId: 100,
+        error: "no profile data returned by API-Football",
+      },
+    ]);
   });
 
   it("filters to the matching club when clubSlug is given", async () => {
@@ -225,6 +248,7 @@ describe("PlayerProfileSyncer", () => {
       profilesUpdated: 0,
       profilesSkippedQuota: 0,
       profilesFailed: 0,
+      failedProfiles: [],
     });
   });
 });

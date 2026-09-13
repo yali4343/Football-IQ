@@ -3,6 +3,11 @@ export interface FailedClub {
   error: string;
 }
 
+export interface FailedProfile {
+  externalApiId: number;
+  error: string;
+}
+
 export interface LeagueMembershipSummary {
   leagueName: string;
   clubsCreated: number;
@@ -22,6 +27,7 @@ export interface LeagueMembershipSummary {
   profilesUpdated: number;
   profilesSkippedQuota: number;
   profilesFailed: number;
+  failedProfiles: FailedProfile[];
   failed: boolean;
   error?: string;
 }
