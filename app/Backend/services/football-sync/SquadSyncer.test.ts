@@ -25,13 +25,26 @@ function createMockPrisma(
   squadSyncClubs: ClubFixture[],
   existingPlayers: Record<number, unknown> = {},
 ) {
+  const findUniqueByExternalId = vi
+    .fn()
+    .mockImplementation(({ where }: { where: { externalApiId: number } }) =>
+      Promise.resolve(existingPlayers[where.externalApiId] ?? null),
+    );
+  const findManyByExternalId = vi
+    .fn()
+    .mockImplementation(
+      ({ where }: { where: { externalApiId: { in: number[] } } }) =>
+        Promise.resolve(
+          where.externalApiId.in
+            .filter((id) => existingPlayers[id] !== undefined)
+            .map((id) => ({
+              ...(existingPlayers[id] as object),
+              externalApiId: id,
+            })),
+        ),
+    );
   const txPlayer = {
-    findUnique: vi
-      .fn()
-      .mockImplementation(({ where }: { where: { externalApiId: number } }) =>
-        Promise.resolve(existingPlayers[where.externalApiId] ?? null),
-      ),
-    create: vi.fn(),
+    createMany: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn().mockResolvedValue({ count: 0 }),
   };
@@ -40,8 +53,9 @@ function createMockPrisma(
     update: vi.fn(),
   };
   const player = {
-    findUnique: txPlayer.findUnique,
-    create: vi.fn(),
+    findUnique: findUniqueByExternalId,
+    findMany: findManyByExternalId,
+    createMany: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     count: vi.fn().mockResolvedValue(0),
@@ -113,17 +127,19 @@ describe("SquadSyncer", () => {
       undefined,
     );
 
-    expect(prisma.txPlayer.create).toHaveBeenCalledWith({
-      data: {
-        name: "Jamal Musiala",
-        position: "Midfielder",
-        age: 21,
-        number: 42,
-        photoUrl: "https://example.com/501.png",
-        clubId: 900,
-        isActive: true,
-        externalApiId: 501,
-      },
+    expect(prisma.txPlayer.createMany).toHaveBeenCalledWith({
+      data: [
+        {
+          name: "Jamal Musiala",
+          position: "Midfielder",
+          age: 21,
+          number: 42,
+          photoUrl: "https://example.com/501.png",
+          clubId: 900,
+          isActive: true,
+          externalApiId: 501,
+        },
+      ],
     });
     expect(result).toMatchObject({
       playersCreated: 1,
@@ -228,7 +244,7 @@ describe("SquadSyncer", () => {
       undefined,
     );
 
-    expect(prisma.txPlayer.create).not.toHaveBeenCalled();
+    expect(prisma.txPlayer.createMany).not.toHaveBeenCalled();
     expect(prisma.txPlayer.update).toHaveBeenCalledWith({
       where: { id: 1 },
       data: expect.objectContaining({ clubId: 900 }),
@@ -366,7 +382,7 @@ describe("SquadSyncer", () => {
 
     expect(client.getSquad).toHaveBeenCalled();
     expect(prisma.$transaction).not.toHaveBeenCalled();
-    expect(prisma.player.create).not.toHaveBeenCalled();
+    expect(prisma.player.createMany).not.toHaveBeenCalled();
     expect(prisma.player.update).not.toHaveBeenCalled();
     expect(prisma.player.updateMany).not.toHaveBeenCalled();
     expect(prisma.club.update).not.toHaveBeenCalled();

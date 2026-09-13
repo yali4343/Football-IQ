@@ -144,6 +144,19 @@ export class SquadSyncer {
     };
   }
 
+  // One batched read for the whole squad instead of a findUnique per
+  // player — keeps the interactive transaction's round-trip count (and
+  // therefore its wall-clock duration) independent of squad size.
+  private async fetchExistingByExternalId(
+    squad: ApiFootballSquadPlayer[],
+  ): Promise<Map<number, ExistingPlayer & { id: number }>> {
+    const existing = await this.prisma.player.findMany({
+      where: { externalApiId: { in: squad.map((player) => player.id) } },
+    });
+
+    return new Map(existing.map((player) => [player.externalApiId, player]));
+  }
+
   private async syncClubSquad(
     club: SquadSyncClub,
     dryRun: boolean,
@@ -174,27 +187,26 @@ export class SquadSyncer {
       return this.diffClubSquad(club, squad);
     }
 
+    const existingByExternalId = await this.fetchExistingByExternalId(squad);
+
     try {
       const result = await this.prisma.$transaction(async (tx) => {
-        let created = 0;
         let updated = 0;
         const seenExternalIds: number[] = [];
+        const toCreate: (ReturnType<typeof playerWriteData> & {
+          externalApiId: number;
+        })[] = [];
 
         for (const player of squad) {
           seenExternalIds.push(player.id);
 
-          const existing = await tx.player.findUnique({
-            where: { externalApiId: player.id },
-          });
+          const existing = existingByExternalId.get(player.id);
 
           if (!existing) {
-            await tx.player.create({
-              data: {
-                ...playerWriteData(player, club.id),
-                externalApiId: player.id,
-              },
+            toCreate.push({
+              ...playerWriteData(player, club.id),
+              externalApiId: player.id,
             });
-            created += 1;
             continue;
           }
 
@@ -205,6 +217,10 @@ export class SquadSyncer {
             });
             updated += 1;
           }
+        }
+
+        if (toCreate.length > 0) {
+          await tx.player.createMany({ data: toCreate });
         }
 
         const deactivated = await tx.player.updateMany({
@@ -221,7 +237,11 @@ export class SquadSyncer {
           data: { squadLastSyncedAt: new Date() },
         });
 
-        return { created, updated, deactivated: deactivated.count };
+        return {
+          created: toCreate.length,
+          updated,
+          deactivated: deactivated.count,
+        };
       });
 
       return {
