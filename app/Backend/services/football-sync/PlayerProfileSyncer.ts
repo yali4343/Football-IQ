@@ -1,5 +1,6 @@
 import type { PrismaClient } from "../../generated/prisma/client.js";
 import type { ApiFootballClient } from "../../integrations/apiFootball/ApiFootballClient.js";
+import type { FailedProfile } from "./FootballSyncService.js";
 import { slugifyLeagueName } from "./nameMatching.js";
 import type { SyncTargetLeague } from "./types.js";
 
@@ -35,6 +36,7 @@ export class PlayerProfileSyncer {
     profilesUpdated: number;
     profilesSkippedQuota: number;
     profilesFailed: number;
+    failedProfiles: FailedProfile[];
   }> {
     const allClubs = await this.prisma.club.findMany({
       where: {
@@ -48,7 +50,12 @@ export class PlayerProfileSyncer {
       : allClubs;
 
     if (clubs.length === 0) {
-      return { profilesUpdated: 0, profilesSkippedQuota: 0, profilesFailed: 0 };
+      return {
+        profilesUpdated: 0,
+        profilesSkippedQuota: 0,
+        profilesFailed: 0,
+        failedProfiles: [],
+      };
     }
 
     const players = await this.prisma.player.findMany({
@@ -62,7 +69,7 @@ export class PlayerProfileSyncer {
 
     let profilesUpdated = 0;
     let profilesSkippedQuota = 0;
-    let profilesFailed = 0;
+    const failedProfiles: FailedProfile[] = [];
 
     for (const player of players) {
       if (!this.apiFootballClient.hasQuotaRemaining()) {
@@ -70,21 +77,29 @@ export class PlayerProfileSyncer {
         continue;
       }
 
-      const updated = await this.syncPlayerProfile(player);
+      const result = await this.syncPlayerProfile(player);
 
-      if (updated) {
+      if (result.status === "updated") {
         profilesUpdated += 1;
       } else {
-        profilesFailed += 1;
+        failedProfiles.push({
+          externalApiId: player.externalApiId,
+          error: result.error,
+        });
       }
     }
 
-    return { profilesUpdated, profilesSkippedQuota, profilesFailed };
+    return {
+      profilesUpdated,
+      profilesSkippedQuota,
+      profilesFailed: failedProfiles.length,
+      failedProfiles,
+    };
   }
 
   private async syncPlayerProfile(
     player: ProfileTargetPlayer,
-  ): Promise<boolean> {
+  ): Promise<{ status: "updated" } | { status: "failed"; error: string }> {
     try {
       const profile = await this.apiFootballClient.getPlayerProfile(
         player.externalApiId,
@@ -92,7 +107,10 @@ export class PlayerProfileSyncer {
       );
 
       if (!profile) {
-        return false;
+        return {
+          status: "failed",
+          error: "no profile data returned by API-Football",
+        };
       }
 
       await this.prisma.player.update({
@@ -109,9 +127,12 @@ export class PlayerProfileSyncer {
         },
       });
 
-      return true;
-    } catch {
-      return false;
+      return { status: "updated" };
+    } catch (error) {
+      return {
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 }

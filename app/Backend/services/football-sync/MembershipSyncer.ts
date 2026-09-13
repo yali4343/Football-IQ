@@ -152,6 +152,7 @@ export class MembershipSyncer {
       profilesUpdated: 0,
       profilesSkippedQuota: 0,
       profilesFailed: 0,
+      failedProfiles: [],
       failed: false,
     };
   }
@@ -297,6 +298,7 @@ export class MembershipSyncer {
       profilesUpdated: 0,
       profilesSkippedQuota: 0,
       profilesFailed: 0,
+      failedProfiles: [],
       failed: true,
       error: error instanceof Error ? error.message : String(error),
     };

@@ -98,6 +98,7 @@ export class PrismaFootballSyncService implements FootballSyncService {
           membership.profilesUpdated = profiles.profilesUpdated;
           membership.profilesSkippedQuota = profiles.profilesSkippedQuota;
           membership.profilesFailed = profiles.profilesFailed;
+          membership.failedProfiles = profiles.failedProfiles;
         }
       }
 
