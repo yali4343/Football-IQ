@@ -271,6 +271,8 @@ export class SquadSyncer {
     playersUpdated: number;
     playersDeactivated: number;
   }> {
+    const existingByExternalId = await this.fetchExistingByExternalId(squad);
+
     let created = 0;
     let updated = 0;
     const seenExternalIds: number[] = [];
@@ -278,9 +280,7 @@ export class SquadSyncer {
     for (const player of squad) {
       seenExternalIds.push(player.id);
 
-      const existing = await this.prisma.player.findUnique({
-        where: { externalApiId: player.id },
-      });
+      const existing = existingByExternalId.get(player.id);
 
       if (!existing) {
         created += 1;

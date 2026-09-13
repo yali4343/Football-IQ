@@ -25,11 +25,6 @@ function createMockPrisma(
   squadSyncClubs: ClubFixture[],
   existingPlayers: Record<number, unknown> = {},
 ) {
-  const findUniqueByExternalId = vi
-    .fn()
-    .mockImplementation(({ where }: { where: { externalApiId: number } }) =>
-      Promise.resolve(existingPlayers[where.externalApiId] ?? null),
-    );
   const findManyByExternalId = vi
     .fn()
     .mockImplementation(
@@ -53,7 +48,6 @@ function createMockPrisma(
     update: vi.fn(),
   };
   const player = {
-    findUnique: findUniqueByExternalId,
     findMany: findManyByExternalId,
     createMany: vi.fn(),
     update: vi.fn(),
