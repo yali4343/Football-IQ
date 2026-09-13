@@ -26,6 +26,11 @@ interface ExistingPlayer {
 
 const FRESHNESS_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+// Prisma's 5000ms default has been too tight for a full-squad sync against
+// a remote DB: the per-row updates plus the deactivate/stamp calls that
+// remain inside the transaction can still add up under normal latency.
+const TRANSACTION_OPTIONS = { timeout: 15000, maxWait: 10000 };
+
 function needsPlayerUpdate(
   existing: ExistingPlayer,
   player: ApiFootballSquadPlayer,
@@ -242,7 +247,7 @@ export class SquadSyncer {
           updated,
           deactivated: deactivated.count,
         };
-      });
+      }, TRANSACTION_OPTIONS);
 
       return {
         status: "synced",
