@@ -2,7 +2,11 @@
 
 ## Demo
 
-<video src="docs/videos/viedo-16.9.mp4" controls></video>
+
+
+https://github.com/user-attachments/assets/261fc675-43b6-41ed-b9fa-6649ec111173
+
+
 
 A full-stack football dashboard for exploring club, squad, and league data across four major European leagues — Premier League, La Liga, Serie A, and Bundesliga.
 
