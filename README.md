@@ -1,5 +1,9 @@
 # Football-IQ
 
+## Demo
+
+<video src="docs/videos/viedo-16.9.mp4" controls></video>
+
 A full-stack football dashboard for exploring club, squad, and league data across four major European leagues — Premier League, La Liga, Serie A, and Bundesliga.
 
 Pick a league, pick a club, and see its current squad, stadium, coach, and background in one place. Football-IQ is also a continuous learning project: the codebase is deliberately built and extended the way a production application would be, one real feature at a time, rather than through disposable exercises.
